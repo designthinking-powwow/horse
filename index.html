@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cha Cha Creative • 乙巳馬年創意紅包</title>
+    <meta property="og:title" content="Cha Cha Creative • 乙巳馬年創意紅包">
+    <meta property="og:description" content="快來抽取你的馬年專屬創意祝福卡！">
+    <meta property="og:image" content="https://images.unsplash.com/photo-1547522678-7359dc02b70b?q=80&w=1200&auto=format&fit=crop">
     
     <!-- 引入 Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -54,7 +57,6 @@
         const { useState, useEffect } = React;
 
         // --- 圖示元件 (SVG) ---
-        // 為了單一檔案運作，將 lucide-react 改為直接 SVG 渲染
         const Sparkles = ({ size = 24, className = "" }) => (
             <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
         );
@@ -72,6 +74,24 @@
         );
         const Download = ({ size = 24, className = "" }) => (
             <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+        );
+        const XIcon = ({ size=24, className="" }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className}><path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z"/></svg>
+        );
+        const FacebookIcon = ({ size=24, className="" }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className}><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
+        );
+        const LineIcon = ({ size=24, className="" }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className}><path d="M12 2C6.48 2 2 5.5 2 10c0 2.12 1 4.05 2.67 5.45C4.26 17.58 3.32 19.34 3.32 19.34c0 0-.27.18.15.35s.7.07.7.07c3.15-.38 5.12-1.63 5.12-1.63.89.25 1.83.38 2.81.38 5.52 0 10-3.5 10-8s-4.48-8-10-8z"/></svg>
+        );
+        const ThreadsIcon = ({ size=24, className="" }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M19 12a7 7 0 1 1-7-7c1.57 0 3 .5 4 1.5l-1 1.6"/><path d="M15.2 12a3.2 3.2 0 1 1-3.2-3.2"/></svg>
+        );
+        const CopyIcon = ({ size=24, className="" }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect width="13" height="13" x="9" y="9" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        );
+        const CloseIcon = ({ size=24, className="" }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>
         );
 
         // --- 資料庫 ---
@@ -216,6 +236,42 @@
             return currentY + lineHeight; // Return next Y position
         };
 
+        // --- 更穩定的複製功能 (相容性修正) ---
+        const copyTextToClipboard = async (text) => {
+            // 優先嘗試現代 API
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                try {
+                    await navigator.clipboard.writeText(text);
+                    return true;
+                } catch (err) {
+                    console.warn("Clipboard API failed, trying fallback:", err);
+                }
+            }
+
+            // Fallback: 使用傳統 execCommand
+            try {
+                const textArea = document.createElement("textarea");
+                textArea.value = text;
+                
+                // 確保 textarea 不會影響版面
+                textArea.style.position = "fixed";
+                textArea.style.left = "-9999px";
+                textArea.style.top = "0";
+                document.body.appendChild(textArea);
+                
+                textArea.focus();
+                textArea.select();
+                
+                const successful = document.execCommand('copy');
+                document.body.removeChild(textArea);
+                
+                return successful;
+            } catch (err) {
+                console.error("Fallback copy failed:", err);
+                return false;
+            }
+        };
+
         function App() {
             const [status, setStatus] = useState('idle'); // idle, opening, revealed
             const [remainingCount, setRemainingCount] = useState(100);
@@ -224,6 +280,8 @@
             const [isFlipped, setIsFlipped] = useState(false);
             const [shareText, setShareText] = useState("分享好運"); 
             const [shareIcon, setShareIcon] = useState(<Share2 size={18} />);
+            const [showShareModal, setShowShareModal] = useState(false);
+            
             // 記錄已抽過的金句索引
             const [drawnHistory, setDrawnHistory] = useState([]);
 
@@ -299,51 +357,92 @@
                 }
             };
 
-            const handleShare = async (e) => {
+            const handleShareClick = async (e) => {
                 e.stopPropagation();
                 if (!currentQuote) return;
 
-                const shareTextContent = `🧧 我在 Cha Cha Creative 抽到了「${currentIdiom}」！
+                // 使用指定的固定網址
+                const targetUrl = "https://www.designthinking.com.tw/horse";
 
-❝ ${currentQuote.quote} ❞
-— ${currentQuote.author}
+                const text = `🧧 我在 Cha Cha Creative 抽到了「${currentIdiom}」！\n\n❝ ${currentQuote.quote} ❞\n— ${currentQuote.author}\n\n👉 馬年解讀：${currentQuote.interpretation}\n\n你也來抽一張專屬祝福卡：`;
+                const url = targetUrl;
 
-👉 馬年解讀：${currentQuote.interpretation}
-
-你也來抽一張專屬祝福卡：
-${window.location.href}`;
-
-                const shareData = {
-                title: 'Cha Cha Creative 馬年紅包',
-                text: shareTextContent,
-                url: window.location.href
-                };
-
-                const copyToClipboard = async () => {
-                    try {
-                        await navigator.clipboard.writeText(shareTextContent); // 複製完整文字
-                        setShareText("已複製！");
-                        setShareIcon(<Check size={18} className="text-green-600" />);
-                        setTimeout(() => {
-                        setShareText("分享好運");
-                        setShareIcon(<Share2 size={18} />);
-                        }, 2000);
-                    } catch (copyErr) {
-                        console.error('複製失敗:', copyErr);
-                        setShareText("複製失敗");
-                    }
-                };
-
-                try {
+                // 優先使用 Web Share API (手機原生分享)
                 if (navigator.share) {
-                    await navigator.share(shareData);
-                } else {
-                    await copyToClipboard();
+                    try {
+                        await navigator.share({
+                            title: 'Cha Cha Creative 馬年紅包',
+                            text: text,
+                            url: url
+                        });
+                        return; // 成功喚起原生分享後，就不顯示自訂 Modal
+                    } catch (err) {
+                        console.log('User canceled share or API failed', err);
+                        // 如果原生分享失敗或取消，不需做額外動作，或者可以選擇 fallback 到 modal
+                    }
+                } 
+                
+                // 如果不支援原生分享 (例如電腦版 Chrome)，則顯示自訂 Modal
+                setShowShareModal(true);
+            };
+
+            const shareToPlatform = async (platform) => {
+                if (!currentQuote) return;
+
+                // 使用指定的固定網址
+                const targetUrl = "https://www.designthinking.com.tw/horse";
+
+                const text = `🧧 我在 Cha Cha Creative 抽到了「${currentIdiom}」！\n\n❝ ${currentQuote.quote} ❞\n— ${currentQuote.author}\n\n👉 馬年解讀：${currentQuote.interpretation}\n\n你也來抽一張專屬祝福卡：`;
+                const url = targetUrl;
+                const fullText = `${text} ${url}`;
+
+                let shareUrl = "";
+
+                switch(platform) {
+                    case 'line':
+                        shareUrl = `https://line.me/R/msg/text/?${encodeURIComponent(text + '\n' + url)}`;
+                        break;
+                    case 'facebook':
+                        // FB 策略優化：如果是在本機 (file:// or localhost)，或者為了確保文字能被分享，
+                        // 先複製文字，然後打開 FB 分享連結。
+                        const success = await copyTextToClipboard(fullText);
+                        if (success) {
+                             // 判斷是否為有效網址，若為 file:// 則提示
+                            if (window.location.protocol === 'file:') {
+                                alert("Facebook 分享需要公開網址，文字已複製！請直接貼上貼文。");
+                                window.open('https://www.facebook.com', '_blank');
+                                return;
+                            }
+                            // 正常網址
+                            alert("文字已複製！正在開啟 Facebook，請直接貼上貼文。");
+                            shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+                            window.open(shareUrl, '_blank');
+                        } else {
+                            alert("複製失敗，請手動複製文字分享。");
+                        }
+                        setShowShareModal(false);
+                        return; 
+                        
+                    case 'threads':
+                        shareUrl = `https://www.threads.net/intent/post?text=${encodeURIComponent(fullText)}`;
+                        break;
+                    case 'x':
+                        shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
+                        break;
+                    case 'copy':
+                        const copySuccess = await copyTextToClipboard(fullText);
+                        if (copySuccess) {
+                            alert("連結已複製！快貼到社群媒體邀請朋友來玩！");
+                        } else {
+                            alert("複製失敗，請手動複製。");
+                        }
+                        return; // Don't open window
                 }
-                } catch (err) {
-                if (err.name === 'AbortError') return;
-                await copyToClipboard();
+
+                if (shareUrl) {
+                    window.open(shareUrl, '_blank');
                 }
+                setShowShareModal(false);
             };
 
             const handleDownload = (e) => {
@@ -570,7 +669,7 @@ ${window.location.href}`;
 
                             <div className="w-full pt-3 border-t border-red-100 flex justify-center gap-4 mt-2">
                                 <button 
-                                    onClick={handleShare}
+                                    onClick={handleShareClick}
                                     className="text-neutral-400 hover:text-red-600 transition-colors flex flex-col items-center gap-1 min-w-[60px]"
                                 >
                                     {shareIcon}
@@ -623,6 +722,53 @@ ${window.location.href}`;
                         </div>
                     )}
                     </footer>
+
+                    {/* 分享選單 Modal */}
+                    {showShareModal && (
+                        <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center p-4">
+                            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowShareModal(false)}></div>
+                            <div className="relative bg-white text-neutral-900 rounded-t-2xl sm:rounded-2xl w-full max-w-sm p-6 shadow-2xl animate-float">
+                                <div className="flex justify-between items-center mb-6">
+                                    <h3 className="text-lg font-bold text-neutral-800">分享好運</h3>
+                                    <button onClick={() => setShowShareModal(false)} className="text-neutral-400 hover:text-neutral-600">
+                                        <CloseIcon />
+                                    </button>
+                                </div>
+                                <div className="grid grid-cols-4 gap-4">
+                                    <button onClick={() => shareToPlatform('line')} className="flex flex-col items-center gap-2 group">
+                                        <div className="w-12 h-12 bg-[#06C755] rounded-full flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform">
+                                            <LineIcon />
+                                        </div>
+                                        <span className="text-xs text-neutral-600">LINE</span>
+                                    </button>
+                                    <button onClick={() => shareToPlatform('facebook')} className="flex flex-col items-center gap-2 group">
+                                        <div className="w-12 h-12 bg-[#1877F2] rounded-full flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform">
+                                            <FacebookIcon />
+                                        </div>
+                                        <span className="text-xs text-neutral-600">Facebook</span>
+                                    </button>
+                                    <button onClick={() => shareToPlatform('threads')} className="flex flex-col items-center gap-2 group">
+                                        <div className="w-12 h-12 bg-black rounded-full flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform">
+                                            <ThreadsIcon />
+                                        </div>
+                                        <span className="text-xs text-neutral-600">Threads</span>
+                                    </button>
+                                    <button onClick={() => shareToPlatform('x')} className="flex flex-col items-center gap-2 group">
+                                        <div className="w-12 h-12 bg-black rounded-full flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform">
+                                            <XIcon />
+                                        </div>
+                                        <span className="text-xs text-neutral-600">X</span>
+                                    </button>
+                                </div>
+                                <div className="mt-6 pt-4 border-t border-neutral-100">
+                                    <button onClick={() => shareToPlatform('copy')} className="w-full flex items-center justify-center gap-2 py-3 bg-neutral-100 hover:bg-neutral-200 rounded-xl transition-colors text-neutral-700 font-medium">
+                                        <CopyIcon size={18} />
+                                        複製連結
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                 </div>
 
