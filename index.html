@@ -1,236 +1,309 @@
-import React, { useState, useEffect } from 'react';
-import { Sparkles, Share2, RefreshCw, Check, Zap, Download } from 'lucide-react';
-
-// 創意語錄資料庫 (100句名人金句 + 馬年創意解讀)
-const QUOTES = [
-  // --- 第一組：商業巨擘與管理大師 ---
-  { quote: "人生就像滾雪球，重要的是找到濕雪和長長的坡。", author: "股神 巴菲特", interpretation: "願你在今年找到那條長長的賽道，財富如萬馬奔騰，越滾越大。", tag: "商業巨擘" },
-  { quote: "如果你想成功，你應當開闢新的道路，而不是走被踩爛的成功之路。", author: "石油大王 洛克菲勒", interpretation: "做一匹特立獨行的黑馬，闖出沒人走過的新路，一馬當先。", tag: "商業巨擘" },
-  { quote: "聰明是一種天賦，而善良是一種選擇。", author: "亞馬遜創辦人 貝佐斯", interpretation: "願你選擇做一匹良駒，既有千里馬的才華，又有溫良的品格，貴人運爆棚。", tag: "商業巨擘" },
-  { quote: "當這件事足夠重要時，即使勝算不大，你依然應該去做。", author: "特斯拉執行長 馬斯克", interpretation: "拿出黑馬的勇氣，不問機率，只問決心，衝就對了！", tag: "商業巨擘" },
-  { quote: "成就偉業的唯一途徑，就是熱愛你所做的事。", author: "蘋果創辦人 賈伯斯", interpretation: "願你如愛跑的駿馬，樂在其中，這份熱愛將帶你跑得比誰都遠。", tag: "商業巨擘" },
-  { quote: "不管你認為自己行，還是不行，你都是對的。", author: "汽車大王 福特", interpretation: "相信你是千里馬，你就是千里馬！信念決定你的馬力。", tag: "商業巨擘" },
-  { quote: "想要無可取代，就必須時刻與眾不同。", author: "時尚女王 香奈兒", interpretation: "在萬馬齊喑中，願你做那匹最獨特的黑馬，風格永存。", tag: "商業巨擘" },
-  { quote: "開始的辦法，就是停止說話，開始做事。", author: "迪士尼創辦人 華特·迪士尼", interpretation: "別當只會叫的馬，要當會跑的馬。行動力，是你最強的蹄鐵。", tag: "商業巨擘" },
-  { quote: "永遠相信美好的事情即將發生。", author: "小米創辦人 雷軍", interpretation: "保持期待，好運「馬」上就到！", tag: "商業巨擘" },
-  { quote: "今天很殘酷，明天更殘酷，後天很美好，但絕對大部分人死在明天晚上。", author: "阿里巴巴創辦人 馬雲", interpretation: "路遙知馬力，願你堅持跑過最黑的夜，迎接後天的曙光。", tag: "商業巨擘" },
-  { quote: "預測未來最好的方法，就是去創造它。", author: "管理學之父 彼得·杜拉克", interpretation: "未來的韁繩在你手裡，駕馭它，創造你的馬年輝煌。", tag: "商業巨擘" },
-  { quote: "心不喚物，物不至。", author: "經營之聖 稻盛和夫", interpretation: "心裡想著終點，馬蹄才會到達。願你心想事成。", tag: "商業巨擘" },
-  { quote: "去冒比別人認為安全的險。", author: "星巴克創辦人 霍華·舒茲", interpretation: "富貴險中求，願你有越過柵欄的勇氣，收穫最豐美的草場。", tag: "商業巨擘" },
-  { quote: "高期望是萬事之鑰。", author: "沃爾瑪創辦人 山姆·沃爾頓", interpretation: "把目標訂高一點，你這匹千里馬才剛要開始發揮實力。", tag: "商業巨擘" },
-  { quote: "同理心讓你成為更好的創新者。", author: "微軟執行長 納德拉", interpretation: "願你如溫柔的良馬，善解人意，贏得團隊的信任與支持。", tag: "商業巨擘" },
-  { quote: "痛苦 + 反省 = 進步。", author: "避險基金教父 瑞·達利歐", interpretation: "每一次跌倒都是為了跑得更快，願你越挫越勇。", tag: "商業巨擘" },
-  { quote: "如果無所畏懼，你會怎麼做？", author: "Facebook營運長 桑德伯格", interpretation: "想像自己是無敵的戰馬，那就沒有跨不過去的坎。", tag: "商業巨擘" },
-  { quote: "伸手摘星，即使徒勞無功，亦不致一手污泥。", author: "廣告大師 李奧·貝納", interpretation: "眼光放高，如天馬行空，你的格局決定你的結局。", tag: "商業巨擘" },
-  { quote: "不要短打，要揮棒全壘打。", author: "廣告教父 奧格威", interpretation: "不要只求安穩，要像賽馬衝線一樣，追求極致的勝利。", tag: "商業巨擘" },
-  { quote: "如果你在做改變世界的事，那你還有更重要的事要做。", author: "Google創辦人 賴瑞·佩吉", interpretation: "專注奔跑，別被路邊的風景分心，終點才是你的榮耀。", tag: "商業巨擘" },
-
-  // --- 第二組：歷史領袖與政治家 ---
-  { quote: "成功不是結局，失敗也非末日：重要的是繼續前進的勇氣。", author: "英國前首相 邱吉爾", interpretation: "馬不停蹄，才是人生常態。願你有跌倒後立刻上馬再戰的帥氣。", tag: "歷史領袖" },
-  { quote: "我們唯一需要恐懼的，是恐懼本身。", author: "美國前總統 羅斯福", interpretation: "跨上戰馬，衝破恐懼的迷霧，前方就是康莊大道。", tag: "歷史領袖" },
-  { quote: "勝利屬於最堅忍的人。", author: "法國軍事家 拿破崙", interpretation: "賽馬場上，拼的不只是速度，更是耐力。願你笑到最後。", tag: "歷史領袖" },
-  { quote: "預測未來最好的方法，就是去創造它。", author: "美國前總統 林肯", interpretation: "別等待伯樂，自己跑出你的未來，你的馬蹄聲就是未來的節奏。", tag: "歷史領袖" },
-  { quote: "我來，我見，我征服。", author: "羅馬大帝 凱薩", interpretation: "願你今年氣勢如虹，馬到成功，所到之處皆為疆土。", tag: "歷史領袖" },
-  { quote: "在事情未成功之前，一切總看似不可能。", author: "南非國父 曼德拉", interpretation: "你是那匹打破「不可能」的黑馬，讓所有人跌破眼鏡。", tag: "歷史領袖" },
-  { quote: "亂生於治，怯生於勇，弱生於強。", author: "春秋兵法家 孫子", interpretation: "願你在亂局中看見機會，如戰馬般精準出擊，以奇致勝。", tag: "歷史領袖" },
-  { quote: "相信你能做到，你就已經完成了一半。", author: "美國前總統 西奧多·羅斯福", interpretation: "信心是最好的馬鞭，抽下去，你就贏了一半。", tag: "歷史領袖" },
-  { quote: "勤奮是好運之母。", author: "美國開國元勛 富蘭克林", interpretation: "沒有天生的千里馬，只有跑出來的汗馬功勞。", tag: "歷史領袖" },
-  { quote: "信心就是當你看不見整座樓梯時，依然踏出的第一步。", author: "民權領袖 馬丁·路德·金", interpretation: "勇敢跨出馬廄吧！即使看不見終點，草原就在前方。", tag: "歷史領袖" },
-  { quote: "成為你在這世界上想看見的改變。", author: "印度聖雄 甘地", interpretation: "想看到萬馬奔騰，自己先成為那匹領頭馬。", tag: "歷史領袖" },
-  { quote: "我們無法做偉大的事，但我們可以用偉大的愛做小事。", author: "諾貝爾和平獎得主 德蕾莎修女", interpretation: "一步一腳印，溫柔的馬也能走出偉大的旅程。", tag: "歷史領袖" },
-  { quote: "未來屬於那些相信夢想之美的人。", author: "美國第一夫人 艾莉諾·羅斯福", interpretation: "以夢為馬，願你的未來如夢想般美麗。", tag: "歷史領袖" },
-  { quote: "快樂不是現成的，它來自你自己的行動。", author: "西藏精神領袖 達賴喇嘛", interpretation: "跑起來，風在耳邊吹過的感覺，就是快樂。", tag: "歷史領袖" },
-  { quote: "即使我知道明天世界會毀滅，我仍會種下我的蘋果樹。", author: "宗教改革領袖 馬丁·路德", interpretation: "這就是黑馬的淡定，無論環境如何，堅持做對的事。", tag: "歷史領袖" },
-  { quote: "我發現我越努力，運氣就越好。", author: "美國開國元勛 傑佛遜", interpretation: "越跑越順，願你的汗水都化為好運。", tag: "歷史領袖" },
-  { quote: "不要太謙虛，你沒那麼偉大。", author: "以色列總理 梅爾夫人", interpretation: "該衝就衝，該展現黑馬實力時，千萬別客氣。", tag: "歷史領袖" },
-  { quote: "學習，學習，再學習。", author: "蘇聯領袖 列寧", interpretation: "職場如賽馬，只有不斷學習進化，才能永遠跑在最前面。", tag: "歷史領袖" },
-  { quote: "真正的友誼，是一株生長緩慢的植物。", author: "美國開國元勛 華盛頓", interpretation: "願你路遙知馬力，日久見人心，收穫最真摯的情誼。", tag: "歷史領袖" },
-  { quote: "如果你要讓人們跟隨你，你必須讓他們信任你。", author: "新加坡國父 李光耀", interpretation: "做一匹值得信賴的領頭馬，帶領團隊衝向高峰。", tag: "歷史領袖" },
-
-  // --- 第三組：哲學、科學與思想家 ---
-  { quote: "千里之行，始於足下。", author: "道家始祖 老子", interpretation: "別只想著終點，跑好腳下的每一步，黑馬傳奇就此開始。", tag: "思想家" },
-  { quote: "譬如平地，雖覆一簣，進，吾往也。", author: "至聖先師 孔子", interpretation: "只要馬蹄還在往前，慢一點也沒關係，總會到達。", tag: "思想家" },
-  { quote: "那些殺不死我的，必使我更強大。", author: "德國哲學家 尼采", interpretation: "願風雨將你這匹黑馬洗刷得更發亮，更強壯。", tag: "思想家" },
-  { quote: "未經審視的生活是不值得過的。", author: "希臘哲學家 蘇格拉底", interpretation: "停下馬腳步思考，是為了跑對方向，不盲目奔騰。", tag: "思想家" },
-  { quote: "卓越不是一種行為，而是一種習慣。", author: "希臘哲學家 亞里斯多德", interpretation: "讓優秀成為你的習慣，像良馬一樣，每一步都精準有力。", tag: "思想家" },
-  { quote: "幸運，是機會正好撞上了你的努力。", author: "斯多葛學派哲學家 塞內卡", interpretation: "你已經跑了很久，今年，幸運女神會騎上你這匹馬。", tag: "思想家" },
-  { quote: "不要走別人踩過的路，去沒人的地方，並留下足跡。", author: "美國思想家 愛默生", interpretation: "野馬不走尋常路，願你跑出一片屬於自己的荒野。", tag: "思想家" },
-  { quote: "想像力比知識更重要。", author: "物理學巨人 愛因斯坦", interpretation: "願你天馬行空，用想像力突破邊界，創造無限可能。", tag: "思想家" },
-  { quote: "生活中沒有什麼可怕的東西，只有需要理解的東西。", author: "放射線之母 居禮夫人", interpretation: "面對未知，像勇馬一樣迎上去，你會發現沒什麼好怕的。", tag: "思想家" },
-  { quote: "真理一旦被發現，都是易懂的。", author: "天文學之父 伽利略", interpretation: "願你獨具慧眼，像識途老馬，總能找到正確的方向。", tag: "思想家" },
-  { quote: "如果我看得比別人遠，那是因為我站在巨人的肩上。", author: "物理學之父 牛頓", interpretation: "懂得借力使力，你就能如飛馬般，一飛沖天。", tag: "思想家" },
-  { quote: "我思，故我在。", author: "近代哲學之父 笛卡兒", interpretation: "奔跑時別忘了思考，智慧是你駕馭人生的韁繩。", tag: "思想家" },
-  { quote: "頭頂的星空與心中的道德律。", author: "德國哲學泰斗 康德", interpretation: "願你腳踏實地奔跑，同時心懷星空般的夢想。", tag: "思想家" },
-  { quote: "人生而自由，但無往不在枷鎖之中。", author: "法國啟蒙思想家 盧梭", interpretation: "掙脫枷鎖吧！做一匹真正自由的野馬。", tag: "思想家" },
-  { quote: "我善養吾浩然之氣。", author: "亞聖 孟子", interpretation: "願你養足氣場，如萬馬奔騰般，氣勢磅礡。", tag: "思想家" },
-  { quote: "從你的脆弱中，將誕生你的力量。", author: "心理分析學派創始人 佛洛伊德", interpretation: "不用逞強，接納脆弱，它會成為你這匹黑馬爆發的動力。", tag: "思想家" },
-  { quote: "人不能兩次踏進同一條河流。", author: "古希臘哲學家 赫拉克利特", interpretation: "每一刻都是新的，像奔流的河水，像奔跑的馬，擁抱變化吧。", tag: "思想家" },
-  { quote: "你擁有支配自己心靈的力量，而非外在事件。", author: "羅馬哲學皇帝 馬可·奧里略", interpretation: "做自己情緒的韁繩掌控者，心定，馬就穩。", tag: "思想家" },
-  { quote: "天地與我並生，而萬物與我為一。", author: "道家代表人物 莊子", interpretation: "願你擁有天馬行空的自由，與世界和諧共舞。", tag: "思想家" },
-  { quote: "存活下來的不是最強壯的，而是最能適應變化的。", author: "進化論之父 達爾文", interpretation: "願你靈活應變，在馬年的變局中，成為最後的贏家。", tag: "思想家" },
-
-  // --- 第四組：文豪、藝術家與創作者 ---
-  { quote: "人可以被毀滅，但不能被打敗。", author: "諾貝爾文學獎得主 海明威", interpretation: "只要你的馬魂還在，隨時都能東山再起，重回賽道。", tag: "文豪藝術" },
-  { quote: "取得進展的秘訣，就是開始。", author: "美國幽默大師 馬克·吐溫", interpretation: "別猶豫了，閘門已開，現在就是奔騰的最佳時刻！", tag: "文豪藝術" },
-  { quote: "做你自己，因為別人都有人做了。", author: "愛爾蘭唯美主義作家 王爾德", interpretation: "這世界上有千萬匹白馬，但我只願做獨一無二的黑馬。", tag: "文豪藝術" },
-  { quote: "偉大的事情並非偶然，而是由一系列小事積累而成。", author: "後印象派畫家 梵谷", interpretation: "一步一腳印，汗馬功勞將匯聚成驚世傑作。", tag: "文豪藝術" },
-  { quote: "行動是所有成功的基礎。", author: "立體派藝術大師 畢卡索", interpretation: "畫餅不如畫馬，畫馬不如賽馬。行動吧！", tag: "文豪藝術" },
-  { quote: "凡是過去，皆為序章。", author: "英國文豪 莎士比亞", interpretation: "過去的榮辱都只是熱身，今年才是你這匹黑馬真正的主場。", tag: "文豪藝術" },
-  { quote: "決定我們成為什麼樣人的，不是我們的能力，而是我們的選擇。", author: "《哈利波特》作者 J.K.羅琳", interpretation: "選擇奔跑，選擇自由，選擇成為那匹最耀眼的馬。", tag: "文豪藝術" },
-  { quote: "每個人都想改變世界，卻沒人想改變自己。", author: "俄國文學巨匠 托爾斯泰", interpretation: "先馴服自己心中的野馬，你就能駕馭整個世界。", tag: "文豪藝術" },
-  { quote: "生活就像海洋，只有意志堅強的人，才能到達彼岸。", author: "法國浪漫主義作家 雨果", interpretation: "願你如渡河之馬，無懼驚濤駭浪，直達成功的彼岸。", tag: "文豪藝術" },
-  { quote: "世上本沒有路，走的人多了，也便成了路。", author: "中國現代文學之父 魯迅", interpretation: "哪裡有草地，哪裡就是路；哪裡有你，哪裡就有路。", tag: "文豪藝術" },
-  { quote: "天生我材必有用。", author: "詩仙 李白", interpretation: "每匹馬都有屬於自己的戰場，你絕對是棟樑之材。", tag: "文豪藝術" },
-  { quote: "這是最好的時代，也是最壞的時代。", author: "英國大文豪 狄更斯", interpretation: "亂世出英雄，這正是黑馬突圍的最好時代。", tag: "文豪藝術" },
-  { quote: "沒有什麼魅力比得上一顆溫柔的心。", author: "英國女作家 珍·奧斯汀", interpretation: "願你剛強如馬，心細如絲，剛柔並濟。", tag: "文豪藝術" },
-  { quote: "從正確的地方開始，而不是從可接受的地方開始。", author: "存在主義作家 卡夫卡", interpretation: "堅持對的方向，哪怕路途遙遠，也是一匹有原則的馬。", tag: "文豪藝術" },
-  { quote: "在隆冬裡，我終於發現我心裡有一個不可戰勝的夏天。", author: "諾貝爾文學獎得主 卡謬", interpretation: "願你心中永遠有一團火，驅動你這匹馬向前奔跑。", tag: "文豪藝術" },
-  { quote: "昨天不過是今天的回憶，明天不過是今天的夢想。", author: "黎巴嫩詩人 紀伯倫", interpretation: "活在當下，跑好今天的每一哩路。", tag: "文豪藝術" },
-  { quote: "你不能只靠站在水邊盯著水面來渡海。", author: "亞洲首位諾貝爾得主 泰戈爾", interpretation: "下水吧！不濕了馬蹄，怎麼能到達對岸？", tag: "文豪藝術" },
-  { quote: "痛是難免的，苦是甘願的。", author: "日本知名作家 村上春樹", interpretation: "奔跑的累是必然，但衝線的爽也是必然。", tag: "文豪藝術" },
-  { quote: "生活不是我們活過的日子，而是我們記住的日子。", author: "魔幻寫實大師 馬奎斯", interpretation: "願你今年創造出無數個高光時刻，讓回憶閃閃發光。", tag: "文豪藝術" },
-  { quote: "我看見大理石中的天使，於是我雕刻直到他自由。", author: "文藝復興巨匠 米開朗基羅", interpretation: "釋放你心中的那匹黑馬，別讓它被石頭困住了。", tag: "文豪藝術" },
-
-  // --- 第五組：體育冠軍與現代榜樣 ---
-  { quote: "我此生失敗了一次又一次，這就是我成功的原因。", author: "籃球之神 喬丹", interpretation: "跌倒算什麼？拍拍馬身上的塵土，下一場還是你贏。", tag: "體育榜樣" },
-  { quote: "如果你害怕失敗，那你很有可能就會失敗。", author: "NBA傳奇球星 柯比", interpretation: "黑馬的字典裡沒有害怕，只有衝刺。", tag: "體育榜樣" },
-  { quote: "像蝴蝶一樣飛舞，像蜜蜂一樣螫人。", author: "傳奇拳王 阿里", interpretation: "願你身姿如馬般矯健靈活，出擊如馬蹄般精準有力。", tag: "體育榜樣" },
-  { quote: "清空你的思緒，如水一般。", author: "功夫巨星 李小龍", interpretation: "願你如水墨畫中的馬，流動自如，不受拘束，適應萬變。", tag: "體育榜樣" },
-  { quote: "活著就有希望。", author: "物理學大師 霍金", interpretation: "只要還在場上，任何一匹落後的馬都有逆轉勝的機會。", tag: "體育榜樣" },
-  { quote: "將你的傷口轉化為智慧。", author: "美國脫口秀女王 歐普拉", interpretation: "那些受過的傷，都會變成你馬蹄下最堅硬的繭，助你跑得更遠。", tag: "體育榜樣" },
-  { quote: "改變，否則就被改變。", author: "管理學大師 傑克·韋爾奇", interpretation: "市場如戰場，願你做那匹最快適應變化的領頭馬。", tag: "體育榜樣" },
-  { quote: "天才就是1%的靈感加上99%的汗水。", author: "發明大王 愛迪生", interpretation: "別迷信天賦，汗馬功勞才是最真實的勛章。", tag: "體育榜樣" },
-  { quote: "我要扼住命運的咽喉，它絕不能使我完全屈服。", author: "樂聖 貝多芬", interpretation: "你不騎在命運背上，命運就會騎在你背上。駕馭它，我的黑馬！", tag: "體育榜樣" },
-  { quote: "成功不是意外，是勤奮、毅力、學習、犧牲。", author: "足球球王 比利", interpretation: "冠軍馬不是天生的，是練出來的。", tag: "體育榜樣" },
-  { quote: "我練了四年只為跑那九秒鐘，有人卻練兩個月就想放棄。", author: "牙買加閃電 尤塞恩·波特", interpretation: "耐住性子，厚積薄發，你的爆發力將驚艷世界。", tag: "體育榜樣" },
-  { quote: "我把每一分都當作賽末點來打。", author: "紅土之王 納達爾", interpretation: "全力以赴，把每一天都當作決賽來跑。", tag: "體育榜樣" },
-  { quote: "你必須為了夢想而戰。", author: "阿根廷球王 梅西", interpretation: "為了心中的世界盃，策馬奔騰，永不退縮。", tag: "體育榜樣" },
-  { quote: "面向陽光，你就看不見陰影。", author: "美國傳奇作家 海倫·凱勒", interpretation: "朝著光跑，黑暗自然會被你遠遠甩在馬後。", tag: "體育榜樣" },
-  { quote: "改善世界不需要等待任何一刻，這是多麼美好。", author: "《安妮日記》作者 安妮·法蘭克", interpretation: "就是現在，上馬出發，去改變你的世界。", tag: "體育榜樣" },
-  { quote: "生命不是在尋找自己，而是在創造自己。", author: "諾貝爾文學獎劇作家 蕭伯納", interpretation: "別找了，直接跑出一個全新的自己吧！", tag: "體育榜樣" },
-  { quote: "你永遠不會老到不能設定新目標。", author: "《納尼亞傳奇》作者 C.S.路易斯", interpretation: "老驥伏櫪，志在千里，什麼時候開始跑都不嫌晚。", tag: "體育榜樣" },
-  { quote: "你可能會遭遇失敗，但你絕不能被打倒。", author: "美國現代詩人 瑪雅·安傑洛", interpretation: "馬失前蹄沒關係，站起來繼續跑，才是真英雄。", tag: "體育榜樣" },
-  { quote: "最有效的方法，就是去做。", author: "傳奇女飛行員 阿梅莉亞·埃爾哈特", interpretation: "別想那麼多，先跨上馬背再說。", tag: "體育榜樣" },
-  { quote: "最可怕的時刻，總是在開始之前。", author: "恐怖小說大師 史蒂芬·金", interpretation: "閘門打開前最緊張，衝出去後，你就自由了。", tag: "體育榜樣" }
-];
-
-// 馬年吉祥成語庫
-const HORSE_IDIOMS = [
-  "馬到成功", "龍馬精神", "一馬當先", "萬馬奔騰", 
-  "天馬行空", "駿馬奔騰", "金馬玉堂", "倚馬可待", 
-  "瑞馬迎春", "祥馬獻瑞", "馬力全開", "厲兵秣馬"
-];
-
-// Helper: Wrap text for Canvas
-const wrapText = (ctx, text, x, y, maxWidth, lineHeight) => {
-    let words = text.split(''); // CJK char split
-    let line = '';
-    let currentY = y;
-
-    for(let n = 0; n < words.length; n++) {
-      let testLine = line + words[n];
-      let metrics = ctx.measureText(testLine);
-      let testWidth = metrics.width;
-      if (testWidth > maxWidth && n > 0) {
-        ctx.fillText(line, x, currentY);
-        line = words[n];
-        currentY += lineHeight;
-      } else {
-        line = testLine;
-      }
-    }
-    ctx.fillText(line, x, currentY);
-    return currentY + lineHeight; // Return next Y position
-};
-
-export default function LunarNewYearRedEnvelope() {
-  const [status, setStatus] = useState('idle'); // idle, opening, revealed
-  const [remainingCount, setRemainingCount] = useState(100);
-  const [currentQuote, setCurrentQuote] = useState(null);
-  const [currentIdiom, setCurrentIdiom] = useState("馬到成功");
-  const [isFlipped, setIsFlipped] = useState(false);
-  const [shareText, setShareText] = useState("分享好運"); 
-  const [shareIcon, setShareIcon] = useState(<Share2 size={18} />);
-  // 記錄已抽過的金句索引
-  const [drawnHistory, setDrawnHistory] = useState([]);
-
-  // 初始化：讀取庫存與抽籤歷史
-  useEffect(() => {
-    const savedCount = localStorage.getItem('redEnvelopeCount');
-    if (savedCount) {
-      setRemainingCount(parseInt(savedCount));
-    }
-
-    const savedHistory = localStorage.getItem('drawnHistory');
-    if (savedHistory) {
-      setDrawnHistory(JSON.parse(savedHistory));
-    }
-  }, []);
-
-  const handleDraw = () => {
-    if (remainingCount <= 0 || status !== 'idle') return;
-
-    setStatus('opening');
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cha Cha Creative • 乙巳馬年創意紅包</title>
     
-    setTimeout(() => {
-      // 1. 篩選出「尚未抽過」的金句索引
-      let availableIndices = QUOTES.map((_, index) => index).filter(index => !drawnHistory.includes(index));
-      
-      // 2. 如果全都抽過了 (availableIndices 為空)，則清空歷史，重新開始一輪
-      if (availableIndices.length === 0) {
-         availableIndices = QUOTES.map((_, index) => index);
-         setDrawnHistory([]); // 重置狀態
-         localStorage.removeItem('drawnHistory'); // 重置 LocalStorage
-      }
-
-      // 3. 從可用名單中隨機抽出一個
-      const randomIndexInAvailable = Math.floor(Math.random() * availableIndices.length);
-      const targetIndex = availableIndices[randomIndexInAvailable];
-
-      const selectedQuote = QUOTES[targetIndex];
-      const randomIdiomIndex = Math.floor(Math.random() * HORSE_IDIOMS.length);
-      const selectedIdiom = HORSE_IDIOMS[randomIdiomIndex];
-      
-      setCurrentQuote(selectedQuote);
-      setCurrentIdiom(selectedIdiom);
-      
-      // 4. 更新已抽過名單
-      let finalHistory;
-      if (drawnHistory.length === QUOTES.length) {
-          finalHistory = [targetIndex];
-      } else {
-          finalHistory = [...drawnHistory, targetIndex];
-      }
-      
-      setDrawnHistory(finalHistory);
-      localStorage.setItem('drawnHistory', JSON.stringify(finalHistory));
-      
-      // 5. 更新剩餘數量
-      const newCount = remainingCount - 1;
-      setRemainingCount(newCount);
-      localStorage.setItem('redEnvelopeCount', newCount.toString());
-      
-      setStatus('revealed');
-    }, 1500);
-  };
-
-  const handleReset = () => {
-    setIsFlipped(false);
-    setStatus('idle');
-    setShareText("分享好運");
-    setShareIcon(<Share2 size={18} />);
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
     
-    if (remainingCount === 0) {
-        setRemainingCount(100);
-        localStorage.setItem('redEnvelopeCount', '100');
-    }
-  };
+    <!-- 引入 React 和 ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- 引入 Babel 用於解析 JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-  const handleShare = async (e) => {
-    e.stopPropagation();
-    if (!currentQuote) return;
+    <!-- 設定樣式與動畫 -->
+    <style>
+        .perspective-1000 {
+            perspective: 1000px;
+        }
+        .transform-style-3d {
+            transform-style: preserve-3d;
+        }
+        .backface-hidden {
+            backface-visibility: hidden;
+        }
+        .rotate-y-180 {
+            transform: rotateY(180deg);
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        .animate-float {
+            animation: float 3s ease-in-out infinite;
+        }
+        /* 解決 iOS 點擊閃爍問題 */
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            margin: 0;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-neutral-900 text-white">
 
-    const shareTextContent = `🧧 我在 Cha Cha Creative 抽到了「${currentIdiom}」！
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // --- 圖示元件 (SVG) ---
+        // 為了單一檔案運作，將 lucide-react 改為直接 SVG 渲染
+        const Sparkles = ({ size = 24, className = "" }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+        );
+        const Share2 = ({ size = 24, className = "" }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/></svg>
+        );
+        const RefreshCw = ({ size = 24, className = "" }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+        );
+        const Check = ({ size = 24, className = "" }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M20 6 9 17l-5-5"/></svg>
+        );
+        const Zap = ({ size = 24, className = "" }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        );
+        const Download = ({ size = 24, className = "" }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+        );
+
+        // --- 資料庫 ---
+        const QUOTES = [
+            // --- 第一組：商業巨擘與管理大師 ---
+            { quote: "人生就像滾雪球，重要的是找到濕雪和長長的坡。", author: "股神 巴菲特", interpretation: "願你在今年找到那條長長的賽道，財富如萬馬奔騰，越滾越大。", tag: "商業巨擘" },
+            { quote: "如果你想成功，你應當開闢新的道路，而不是走被踩爛的成功之路。", author: "石油大王 洛克菲勒", interpretation: "做一匹特立獨行的黑馬，闖出沒人走過的新路，一馬當先。", tag: "商業巨擘" },
+            { quote: "聰明是一種天賦，而善良是一種選擇。", author: "亞馬遜創辦人 貝佐斯", interpretation: "願你選擇做一匹良駒，既有千里馬的才華，又有溫良的品格，貴人運爆棚。", tag: "商業巨擘" },
+            { quote: "當這件事足夠重要時，即使勝算不大，你依然應該去做。", author: "特斯拉執行長 馬斯克", interpretation: "拿出黑馬的勇氣，不問機率，只問決心，衝就對了！", tag: "商業巨擘" },
+            { quote: "成就偉業的唯一途徑，就是熱愛你所做的事。", author: "蘋果創辦人 賈伯斯", interpretation: "願你如愛跑的駿馬，樂在其中，這份熱愛將帶你跑得比誰都遠。", tag: "商業巨擘" },
+            { quote: "不管你認為自己行，還是不行，你都是對的。", author: "汽車大王 福特", interpretation: "相信你是千里馬，你就是千里馬！信念決定你的馬力。", tag: "商業巨擘" },
+            { quote: "想要無可取代，就必須時刻與眾不同。", author: "時尚女王 香奈兒", interpretation: "在萬馬齊喑中，願你做那匹最獨特的黑馬，風格永存。", tag: "商業巨擘" },
+            { quote: "開始的辦法，就是停止說話，開始做事。", author: "迪士尼創辦人 華特·迪士尼", interpretation: "別當只會叫的馬，要當會跑的馬。行動力，是你最強的蹄鐵。", tag: "商業巨擘" },
+            { quote: "永遠相信美好的事情即將發生。", author: "小米創辦人 雷軍", interpretation: "保持期待，好運「馬」上就到！", tag: "商業巨擘" },
+            { quote: "今天很殘酷，明天更殘酷，後天很美好，但絕對大部分人死在明天晚上。", author: "阿里巴巴創辦人 馬雲", interpretation: "路遙知馬力，願你堅持跑過最黑的夜，迎接後天的曙光。", tag: "商業巨擘" },
+            { quote: "預測未來最好的方法，就是去創造它。", author: "管理學之父 彼得·杜拉克", interpretation: "未來的韁繩在你手裡，駕馭它，創造你的馬年輝煌。", tag: "商業巨擘" },
+            { quote: "心不喚物，物不至。", author: "經營之聖 稻盛和夫", interpretation: "心裡想著終點，馬蹄才會到達。願你心想事成。", tag: "商業巨擘" },
+            { quote: "去冒比別人認為安全的險。", author: "星巴克創辦人 霍華·舒茲", interpretation: "富貴險中求，願你有越過柵欄的勇氣，收穫最豐美的草場。", tag: "商業巨擘" },
+            { quote: "高期望是萬事之鑰。", author: "沃爾瑪創辦人 山姆·沃爾頓", interpretation: "把目標訂高一點，你這匹千里馬才剛要開始發揮實力。", tag: "商業巨擘" },
+            { quote: "同理心讓你成為更好的創新者。", author: "微軟執行長 納德拉", interpretation: "願你如溫柔的良馬，善解人意，贏得團隊的信任與支持。", tag: "商業巨擘" },
+            { quote: "痛苦 + 反省 = 進步。", author: "避險基金教父 瑞·達利歐", interpretation: "每一次跌倒都是為了跑得更快，願你越挫越勇。", tag: "商業巨擘" },
+            { quote: "如果無所畏懼，你會怎麼做？", author: "Facebook營運長 桑德伯格", interpretation: "想像自己是無敵的戰馬，那就沒有跨不過去的坎。", tag: "商業巨擘" },
+            { quote: "伸手摘星，即使徒勞無功，亦不致一手污泥。", author: "廣告大師 李奧·貝納", interpretation: "眼光放高，如天馬行空，你的格局決定你的結局。", tag: "商業巨擘" },
+            { quote: "不要短打，要揮棒全壘打。", author: "廣告教父 奧格威", interpretation: "不要只求安穩，要像賽馬衝線一樣，追求極致的勝利。", tag: "商業巨擘" },
+            { quote: "如果你在做改變世界的事，那你還有更重要的事要做。", author: "Google創辦人 賴瑞·佩吉", interpretation: "專注奔跑，別被路邊的風景分心，終點才是你的榮耀。", tag: "商業巨擘" },
+
+            // --- 第二組：歷史領袖與政治家 ---
+            { quote: "成功不是結局，失敗也非末日：重要的是繼續前進的勇氣。", author: "英國前首相 邱吉爾", interpretation: "馬不停蹄，才是人生常態。願你有跌倒後立刻上馬再戰的帥氣。", tag: "歷史領袖" },
+            { quote: "我們唯一需要恐懼的，是恐懼本身。", author: "美國前總統 羅斯福", interpretation: "跨上戰馬，衝破恐懼的迷霧，前方就是康莊大道。", tag: "歷史領袖" },
+            { quote: "勝利屬於最堅忍的人。", author: "法國軍事家 拿破崙", interpretation: "賽馬場上，拼的不只是速度，更是耐力。願你笑到最後。", tag: "歷史領袖" },
+            { quote: "預測未來最好的方法，就是去創造它。", author: "美國前總統 林肯", interpretation: "別等待伯樂，自己跑出你的未來，你的馬蹄聲就是未來的節奏。", tag: "歷史領袖" },
+            { quote: "我來，我見，我征服。", author: "羅馬大帝 凱薩", interpretation: "願你今年氣勢如虹，馬到成功，所到之處皆為疆土。", tag: "歷史領袖" },
+            { quote: "在事情未成功之前，一切總看似不可能。", author: "南非國父 曼德拉", interpretation: "你是那匹打破「不可能」的黑馬，讓所有人跌破眼鏡。", tag: "歷史領袖" },
+            { quote: "亂生於治，怯生於勇，弱生於強。", author: "春秋兵法家 孫子", interpretation: "願你在亂局中看見機會，如戰馬般精準出擊，以奇致勝。", tag: "歷史領袖" },
+            { quote: "相信你能做到，你就已經完成了一半。", author: "美國前總統 西奧多·羅斯福", interpretation: "信心是最好的馬鞭，抽下去，你就贏了一半。", tag: "歷史領袖" },
+            { quote: "勤奮是好運之母。", author: "美國開國元勛 富蘭克林", interpretation: "沒有天生的千里馬，只有跑出來的汗馬功勞。", tag: "歷史領袖" },
+            { quote: "信心就是當你看不見整座樓梯時，依然踏出的第一步。", author: "民權領袖 馬丁·路德·金", interpretation: "勇敢跨出馬廄吧！即使看不見終點，草原就在前方。", tag: "歷史領袖" },
+            { quote: "成為你在這世界上想看見的改變。", author: "印度聖雄 甘地", interpretation: "想看到萬馬奔騰，自己先成為那匹領頭馬。", tag: "歷史領袖" },
+            { quote: "我們無法做偉大的事，但我們可以用偉大的愛做小事。", author: "諾貝爾和平獎得主 德蕾莎修女", interpretation: "一步一腳印，溫柔的馬也能走出偉大的旅程。", tag: "歷史領袖" },
+            { quote: "未來屬於那些相信夢想之美的人。", author: "美國第一夫人 艾莉諾·羅斯福", interpretation: "以夢為馬，願你的未來如夢想般美麗。", tag: "歷史領袖" },
+            { quote: "快樂不是現成的，它來自你自己的行動。", author: "西藏精神領袖 達賴喇嘛", interpretation: "跑起來，風在耳邊吹過的感覺，就是快樂。", tag: "歷史領袖" },
+            { quote: "即使我知道明天世界會毀滅，我仍會種下我的蘋果樹。", author: "宗教改革領袖 馬丁·路德", interpretation: "這就是黑馬的淡定，無論環境如何，堅持做對的事。", tag: "歷史領袖" },
+            { quote: "我發現我越努力，運氣就越好。", author: "美國開國元勛 傑佛遜", interpretation: "越跑越順，願你的汗水都化為好運。", tag: "歷史領袖" },
+            { quote: "不要太謙虛，你沒那麼偉大。", author: "以色列總理 梅爾夫人", interpretation: "該衝就衝，該展現黑馬實力時，千萬別客氣。", tag: "歷史領袖" },
+            { quote: "學習，學習，再學習。", author: "蘇聯領袖 列寧", interpretation: "職場如賽馬，只有不斷學習進化，才能永遠跑在最前面。", tag: "歷史領袖" },
+            { quote: "真正的友誼，是一株生長緩慢的植物。", author: "美國開國元勛 華盛頓", interpretation: "願你路遙知馬力，日久見人心，收穫最真摯的情誼。", tag: "歷史領袖" },
+            { quote: "如果你要讓人們跟隨你，你必須讓他們信任你。", author: "新加坡國父 李光耀", interpretation: "做一匹值得信賴的領頭馬，帶領團隊衝向高峰。", tag: "歷史領袖" },
+
+            // --- 第三組：哲學、科學與思想家 ---
+            { quote: "千里之行，始於足下。", author: "道家始祖 老子", interpretation: "別只想著終點，跑好腳下的每一步，黑馬傳奇就此開始。", tag: "思想家" },
+            { quote: "譬如平地，雖覆一簣，進，吾往也。", author: "至聖先師 孔子", interpretation: "只要馬蹄還在往前，慢一點也沒關係，總會到達。", tag: "思想家" },
+            { quote: "那些殺不死我的，必使我更強大。", author: "德國哲學家 尼采", interpretation: "願風雨將你這匹黑馬洗刷得更發亮，更強壯。", tag: "思想家" },
+            { quote: "未經審視的生活是不值得過的。", author: "希臘哲學家 蘇格拉底", interpretation: "停下馬腳步思考，是為了跑對方向，不盲目奔騰。", tag: "思想家" },
+            { quote: "卓越不是一種行為，而是一種習慣。", author: "希臘哲學家 亞里斯多德", interpretation: "讓優秀成為你的習慣，像良馬一樣，每一步都精準有力。", tag: "思想家" },
+            { quote: "幸運，是機會正好撞上了你的努力。", author: "斯多葛學派哲學家 塞內卡", interpretation: "你已經跑了很久，今年，幸運女神會騎上你這匹馬。", tag: "思想家" },
+            { quote: "不要走別人踩過的路，去沒人的地方，並留下足跡。", author: "美國思想家 愛默生", interpretation: "野馬不走尋常路，願你跑出一片屬於自己的荒野。", tag: "思想家" },
+            { quote: "想像力比知識更重要。", author: "物理學巨人 愛因斯坦", interpretation: "願你天馬行空，用想像力突破邊界，創造無限可能。", tag: "思想家" },
+            { quote: "生活中沒有什麼可怕的東西，只有需要理解的東西。", author: "放射線之母 居禮夫人", interpretation: "面對未知，像勇馬一樣迎上去，你會發現沒什麼好怕的。", tag: "思想家" },
+            { quote: "真理一旦被發現，都是易懂的。", author: "天文學之父 伽利略", interpretation: "願你獨具慧眼，像識途老馬，總能找到正確的方向。", tag: "思想家" },
+            { quote: "如果我看得比別人遠，那是因為我站在巨人的肩上。", author: "物理學之父 牛頓", interpretation: "懂得借力使力，你就能如飛馬般，一飛沖天。", tag: "思想家" },
+            { quote: "我思，故我在。", author: "近代哲學之父 笛卡兒", interpretation: "奔跑時別忘了思考，智慧是你駕馭人生的韁繩。", tag: "思想家" },
+            { quote: "頭頂的星空與心中的道德律。", author: "德國哲學泰斗 康德", interpretation: "願你腳踏實地奔跑，同時心懷星空般的夢想。", tag: "思想家" },
+            { quote: "人生而自由，但無往不在枷鎖之中。", author: "法國啟蒙思想家 盧梭", interpretation: "掙脫枷鎖吧！做一匹真正自由的野馬。", tag: "思想家" },
+            { quote: "我善養吾浩然之氣。", author: "亞聖 孟子", interpretation: "願你養足氣場，如萬馬奔騰般，氣勢磅礡。", tag: "思想家" },
+            { quote: "從你的脆弱中，將誕生你的力量。", author: "心理分析學派創始人 佛洛伊德", interpretation: "不用逞強，接納脆弱，它會成為你這匹黑馬爆發的動力。", tag: "思想家" },
+            { quote: "人不能兩次踏進同一條河流。", author: "古希臘哲學家 赫拉克利特", interpretation: "每一刻都是新的，像奔流的河水，像奔跑的馬，擁抱變化吧。", tag: "思想家" },
+            { quote: "你擁有支配自己心靈的力量，而非外在事件。", author: "羅馬哲學皇帝 馬可·奧里略", interpretation: "做自己情緒的韁繩掌控者，心定，馬就穩。", tag: "思想家" },
+            { quote: "天地與我並生，而萬物與我為一。", author: "道家代表人物 莊子", interpretation: "願你擁有天馬行空的自由，與世界和諧共舞。", tag: "思想家" },
+            { quote: "存活下來的不是最強壯的，而是最能適應變化的。", author: "進化論之父 達爾文", interpretation: "願你靈活應變，在馬年的變局中，成為最後的贏家。", tag: "思想家" },
+
+            // --- 第四組：文豪、藝術家與創作者 ---
+            { quote: "人可以被毀滅，但不能被打敗。", author: "諾貝爾文學獎得主 海明威", interpretation: "只要你的馬魂還在，隨時都能東山再起，重回賽道。", tag: "文豪藝術" },
+            { quote: "取得進展的秘訣，就是開始。", author: "美國幽默大師 馬克·吐溫", interpretation: "別猶豫了，閘門已開，現在就是奔騰的最佳時刻！", tag: "文豪藝術" },
+            { quote: "做你自己，因為別人都有人做了。", author: "愛爾蘭唯美主義作家 王爾德", interpretation: "這世界上有千萬匹白馬，但我只願做獨一無二的黑馬。", tag: "文豪藝術" },
+            { quote: "偉大的事情並非偶然，而是由一系列小事積累而成。", author: "後印象派畫家 梵谷", interpretation: "一步一腳印，汗馬功勞將匯聚成驚世傑作。", tag: "文豪藝術" },
+            { quote: "行動是所有成功的基礎。", author: "立體派藝術大師 畢卡索", interpretation: "畫餅不如畫馬，畫馬不如賽馬。行動吧！", tag: "文豪藝術" },
+            { quote: "凡是過去，皆為序章。", author: "英國文豪 莎士比亞", interpretation: "過去的榮辱都只是熱身，今年才是你這匹黑馬真正的主場。", tag: "文豪藝術" },
+            { quote: "決定我們成為什麼樣人的，不是我們的能力，而是我們的選擇。", author: "《哈利波特》作者 J.K.羅琳", interpretation: "選擇奔跑，選擇自由，選擇成為那匹最耀眼的馬。", tag: "文豪藝術" },
+            { quote: "每個人都想改變世界，卻沒人想改變自己。", author: "俄國文學巨匠 托爾斯泰", interpretation: "先馴服自己心中的野馬，你就能駕馭整個世界。", tag: "文豪藝術" },
+            { quote: "生活就像海洋，只有意志堅強的人，才能到達彼岸。", author: "法國浪漫主義作家 雨果", interpretation: "願你如渡河之馬，無懼驚濤駭浪，直達成功的彼岸。", tag: "文豪藝術" },
+            { quote: "世上本沒有路，走的人多了，也便成了路。", author: "中國現代文學之父 魯迅", interpretation: "哪裡有草地，哪裡就是路；哪裡有你，哪裡就有路。", tag: "文豪藝術" },
+            { quote: "天生我材必有用。", author: "詩仙 李白", interpretation: "每匹馬都有屬於自己的戰場，你絕對是棟樑之材。", tag: "文豪藝術" },
+            { quote: "這是最好的時代，也是最壞的時代。", author: "英國大文豪 狄更斯", interpretation: "亂世出英雄，這正是黑馬突圍的最好時代。", tag: "文豪藝術" },
+            { quote: "沒有什麼魅力比得上一顆溫柔的心。", author: "英國女作家 珍·奧斯汀", interpretation: "願你剛強如馬，心細如絲，剛柔並濟。", tag: "文豪藝術" },
+            { quote: "從正確的地方開始，而不是從可接受的地方開始。", author: "存在主義作家 卡夫卡", interpretation: "堅持對的方向，哪怕路途遙遠，也是一匹有原則的馬。", tag: "文豪藝術" },
+            { quote: "在隆冬裡，我終於發現我心裡有一個不可戰勝的夏天。", author: "諾貝爾文學獎得主 卡謬", interpretation: "願你心中永遠有一團火，驅動你這匹馬向前奔跑。", tag: "文豪藝術" },
+            { quote: "昨天不過是今天的回憶，明天不過是今天的夢想。", author: "黎巴嫩詩人 紀伯倫", interpretation: "活在當下，跑好今天的每一哩路。", tag: "文豪藝術" },
+            { quote: "你不能只靠站在水邊盯著水面來渡海。", author: "亞洲首位諾貝爾得主 泰戈爾", interpretation: "下水吧！不濕了馬蹄，怎麼能到達對岸？", tag: "文豪藝術" },
+            { quote: "痛是難免的，苦是甘願的。", author: "日本知名作家 村上春樹", interpretation: "奔跑的累是必然，但衝線的爽也是必然。", tag: "文豪藝術" },
+            { quote: "生活不是我們活過的日子，而是我們記住的日子。", author: "魔幻寫實大師 馬奎斯", interpretation: "願你今年創造出無數個高光時刻，讓回憶閃閃發光。", tag: "文豪藝術" },
+            { quote: "我看見大理石中的天使，於是我雕刻直到他自由。", author: "文藝復興巨匠 米開朗基羅", interpretation: "釋放你心中的那匹黑馬，別讓它被石頭困住了。", tag: "文豪藝術" },
+
+            // --- 第五組：體育冠軍與現代榜樣 ---
+            { quote: "我此生失敗了一次又一次，這就是我成功的原因。", author: "籃球之神 喬丹", interpretation: "跌倒算什麼？拍拍馬身上的塵土，下一場還是你贏。", tag: "體育榜樣" },
+            { quote: "如果你害怕失敗，那你很有可能就會失敗。", author: "NBA傳奇球星 柯比", interpretation: "黑馬的字典裡沒有害怕，只有衝刺。", tag: "體育榜樣" },
+            { quote: "像蝴蝶一樣飛舞，像蜜蜂一樣螫人。", author: "傳奇拳王 阿里", interpretation: "願你身姿如馬般矯健靈活，出擊如馬蹄般精準有力。", tag: "體育榜樣" },
+            { quote: "清空你的思緒，如水一般。", author: "功夫巨星 李小龍", interpretation: "願你如水墨畫中的馬，流動自如，不受拘束，適應萬變。", tag: "體育榜樣" },
+            { quote: "活著就有希望。", author: "物理學大師 霍金", interpretation: "只要還在場上，任何一匹落後的馬都有逆轉勝的機會。", tag: "體育榜樣" },
+            { quote: "將你的傷口轉化為智慧。", author: "美國脫口秀女王 歐普拉", interpretation: "那些受過的傷，都會變成你馬蹄下最堅硬的繭，助你跑得更遠。", tag: "體育榜樣" },
+            { quote: "改變，否則就被改變。", author: "管理學大師 傑克·韋爾奇", interpretation: "市場如戰場，願你做那匹最快適應變化的領頭馬。", tag: "體育榜樣" },
+            { quote: "天才就是1%的靈感加上99%的汗水。", author: "發明大王 愛迪生", interpretation: "別迷信天賦，汗馬功勞才是最真實的勛章。", tag: "體育榜樣" },
+            { quote: "我要扼住命運的咽喉，它絕不能使我完全屈服。", author: "樂聖 貝多芬", interpretation: "你不騎在命運背上，命運就會騎在你背上。駕馭它，我的黑馬！", tag: "體育榜樣" },
+            { quote: "成功不是意外，是勤奮、毅力、學習、犧牲。", author: "足球球王 比利", interpretation: "冠軍馬不是天生的，是練出來的。", tag: "體育榜樣" },
+            { quote: "我練了四年只為跑那九秒鐘，有人卻練兩個月就想放棄。", author: "牙買加閃電 尤塞恩·波特", interpretation: "耐住性子，厚積薄發，你的爆發力將驚艷世界。", tag: "體育榜樣" },
+            { quote: "我把每一分都當作賽末點來打。", author: "紅土之王 納達爾", interpretation: "全力以赴，把每一天都當作決賽來跑。", tag: "體育榜樣" },
+            { quote: "你必須為了夢想而戰。", author: "阿根廷球王 梅西", interpretation: "為了心中的世界盃，策馬奔騰，永不退縮。", tag: "體育榜樣" },
+            { quote: "面向陽光，你就看不見陰影。", author: "美國傳奇作家 海倫·凱勒", interpretation: "朝著光跑，黑暗自然會被你遠遠甩在馬後。", tag: "體育榜樣" },
+            { quote: "改善世界不需要等待任何一刻，這是多麼美好。", author: "《安妮日記》作者 安妮·法蘭克", interpretation: "就是現在，上馬出發，去改變你的世界。", tag: "體育榜樣" },
+            { quote: "生命不是在尋找自己，而是在創造自己。", author: "諾貝爾文學獎劇作家 蕭伯納", interpretation: "別找了，直接跑出一個全新的自己吧！", tag: "體育榜樣" },
+            { quote: "你永遠不會老到不能設定新目標。", author: "《納尼亞傳奇》作者 C.S.路易斯", interpretation: "老驥伏櫪，志在千里，什麼時候開始跑都不嫌晚。", tag: "體育榜樣" },
+            { quote: "你可能會遭遇失敗，但你絕不能被打倒。", author: "美國現代詩人 瑪雅·安傑洛", interpretation: "馬失前蹄沒關係，站起來繼續跑，才是真英雄。", tag: "體育榜樣" },
+            { quote: "最有效的方法，就是去做。", author: "傳奇女飛行員 阿梅莉亞·埃爾哈特", interpretation: "別想那麼多，先跨上馬背再說。", tag: "體育榜樣" },
+            { quote: "最可怕的時刻，總是在開始之前。", author: "恐怖小說大師 史蒂芬·金", interpretation: "閘門打開前最緊張，衝出去後，你就自由了。", tag: "體育榜樣" }
+        ];
+
+        // 馬年吉祥成語庫
+        const HORSE_IDIOMS = [
+            "馬到成功", "龍馬精神", "一馬當先", "萬馬奔騰", 
+            "天馬行空", "駿馬奔騰", "金馬玉堂", "倚馬可待", 
+            "瑞馬迎春", "祥馬獻瑞", "馬力全開", "厲兵秣馬"
+        ];
+
+        // Helper: Wrap text for Canvas
+        const wrapText = (ctx, text, x, y, maxWidth, lineHeight) => {
+            let words = text.split(''); // CJK char split
+            let line = '';
+            let currentY = y;
+
+            for(let n = 0; n < words.length; n++) {
+            let testLine = line + words[n];
+            let metrics = ctx.measureText(testLine);
+            let testWidth = metrics.width;
+            if (testWidth > maxWidth && n > 0) {
+                ctx.fillText(line, x, currentY);
+                line = words[n];
+                currentY += lineHeight;
+            } else {
+                line = testLine;
+            }
+            }
+            ctx.fillText(line, x, currentY);
+            return currentY + lineHeight; // Return next Y position
+        };
+
+        function App() {
+            const [status, setStatus] = useState('idle'); // idle, opening, revealed
+            const [remainingCount, setRemainingCount] = useState(100);
+            const [currentQuote, setCurrentQuote] = useState(null);
+            const [currentIdiom, setCurrentIdiom] = useState("馬到成功");
+            const [isFlipped, setIsFlipped] = useState(false);
+            const [shareText, setShareText] = useState("分享好運"); 
+            const [shareIcon, setShareIcon] = useState(<Share2 size={18} />);
+            // 記錄已抽過的金句索引
+            const [drawnHistory, setDrawnHistory] = useState([]);
+
+            // 初始化：讀取庫存與抽籤歷史
+            useEffect(() => {
+                const savedCount = localStorage.getItem('redEnvelopeCount');
+                if (savedCount) {
+                setRemainingCount(parseInt(savedCount));
+                }
+
+                const savedHistory = localStorage.getItem('drawnHistory');
+                if (savedHistory) {
+                setDrawnHistory(JSON.parse(savedHistory));
+                }
+            }, []);
+
+            const handleDraw = () => {
+                if (remainingCount <= 0 || status !== 'idle') return;
+
+                setStatus('opening');
+                
+                setTimeout(() => {
+                // 1. 篩選出「尚未抽過」的金句索引
+                let availableIndices = QUOTES.map((_, index) => index).filter(index => !drawnHistory.includes(index));
+                
+                // 2. 如果全都抽過了 (availableIndices 為空)，則清空歷史，重新開始一輪
+                if (availableIndices.length === 0) {
+                    availableIndices = QUOTES.map((_, index) => index);
+                    setDrawnHistory([]); // 重置狀態
+                    localStorage.removeItem('drawnHistory'); // 重置 LocalStorage
+                }
+
+                // 3. 從可用名單中隨機抽出一個
+                const randomIndexInAvailable = Math.floor(Math.random() * availableIndices.length);
+                const targetIndex = availableIndices[randomIndexInAvailable];
+
+                const selectedQuote = QUOTES[targetIndex];
+                const randomIdiomIndex = Math.floor(Math.random() * HORSE_IDIOMS.length);
+                const selectedIdiom = HORSE_IDIOMS[randomIdiomIndex];
+                
+                setCurrentQuote(selectedQuote);
+                setCurrentIdiom(selectedIdiom);
+                
+                // 4. 更新已抽過名單
+                let finalHistory;
+                if (drawnHistory.length === QUOTES.length) {
+                    finalHistory = [targetIndex];
+                } else {
+                    finalHistory = [...drawnHistory, targetIndex];
+                }
+                
+                setDrawnHistory(finalHistory);
+                localStorage.setItem('drawnHistory', JSON.stringify(finalHistory));
+                
+                // 5. 更新剩餘數量
+                const newCount = remainingCount - 1;
+                setRemainingCount(newCount);
+                localStorage.setItem('redEnvelopeCount', newCount.toString());
+                
+                setStatus('revealed');
+                }, 1500);
+            };
+
+            const handleReset = () => {
+                setIsFlipped(false);
+                setStatus('idle');
+                setShareText("分享好運");
+                setShareIcon(<Share2 size={18} />);
+                
+                if (remainingCount === 0) {
+                    setRemainingCount(100);
+                    localStorage.setItem('redEnvelopeCount', '100');
+                }
+            };
+
+            const handleShare = async (e) => {
+                e.stopPropagation();
+                if (!currentQuote) return;
+
+                const shareTextContent = `🧧 我在 Cha Cha Creative 抽到了「${currentIdiom}」！
 
 ❝ ${currentQuote.quote} ❞
 — ${currentQuote.author}
@@ -240,344 +313,346 @@ export default function LunarNewYearRedEnvelope() {
 你也來抽一張專屬祝福卡：
 ${window.location.href}`;
 
-    const shareData = {
-      title: 'Cha Cha Creative 馬年紅包',
-      text: shareTextContent,
-      url: window.location.href
-    };
+                const shareData = {
+                title: 'Cha Cha Creative 馬年紅包',
+                text: shareTextContent,
+                url: window.location.href
+                };
 
-    const copyToClipboard = async () => {
-        try {
-            await navigator.clipboard.writeText(shareTextContent); // 複製完整文字
-            setShareText("已複製！");
-            setShareIcon(<Check size={18} className="text-green-600" />);
-            setTimeout(() => {
-              setShareText("分享好運");
-              setShareIcon(<Share2 size={18} />);
-            }, 2000);
-        } catch (copyErr) {
-            console.error('複製失敗:', copyErr);
-            setShareText("複製失敗");
-        }
-    };
+                const copyToClipboard = async () => {
+                    try {
+                        await navigator.clipboard.writeText(shareTextContent); // 複製完整文字
+                        setShareText("已複製！");
+                        setShareIcon(<Check size={18} className="text-green-600" />);
+                        setTimeout(() => {
+                        setShareText("分享好運");
+                        setShareIcon(<Share2 size={18} />);
+                        }, 2000);
+                    } catch (copyErr) {
+                        console.error('複製失敗:', copyErr);
+                        setShareText("複製失敗");
+                    }
+                };
 
-    try {
-      if (navigator.share) {
-        await navigator.share(shareData);
-      } else {
-        await copyToClipboard();
-      }
-    } catch (err) {
-      if (err.name === 'AbortError') return;
-      await copyToClipboard();
-    }
-  };
+                try {
+                if (navigator.share) {
+                    await navigator.share(shareData);
+                } else {
+                    await copyToClipboard();
+                }
+                } catch (err) {
+                if (err.name === 'AbortError') return;
+                await copyToClipboard();
+                }
+            };
 
-  const handleDownload = (e) => {
-    e.stopPropagation();
-    if (!currentQuote) return;
+            const handleDownload = (e) => {
+                e.stopPropagation();
+                if (!currentQuote) return;
 
-    // 建立高清 Canvas
-    const canvas = document.createElement('canvas');
-    canvas.width = 900;
-    canvas.height = 1200;
-    const ctx = canvas.getContext('2d');
+                const canvas = document.createElement('canvas');
+                canvas.width = 900;
+                canvas.height = 1200;
+                const ctx = canvas.getContext('2d');
 
-    // 1. 繪製背景 (米色質感)
-    ctx.fillStyle = '#fdfbf7';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    // 2. 繪製裝飾邊框 (深紅)
-    ctx.strokeStyle = '#991b1b'; 
-    ctx.lineWidth = 24;
-    ctx.strokeRect(40, 40, canvas.width - 80, canvas.height - 80);
-
-    // 3. 頂部標題
-    ctx.fillStyle = '#991b1b';
-    ctx.font = 'bold 32px serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('CHA CHA CARD', canvas.width / 2, 110);
-    ctx.font = 'bold 24px serif';
-    ctx.fillText(`NO. ${101 - remainingCount}`, canvas.width / 2, 150);
-
-    // 4. 成語 (新增顯示)
-    ctx.fillStyle = '#b91c1c'; // red-700
-    ctx.font = 'bold 48px serif';
-    ctx.fillText(`抽中：${currentIdiom}`, canvas.width / 2, 240);
-
-    // 5. 分類標籤 (模擬 Pill)
-    ctx.font = 'bold 24px sans-serif';
-    const tagText = `#${currentQuote.tag}`;
-    const tagWidth = ctx.measureText(tagText).width + 50;
-    ctx.fillStyle = '#e5e7eb'; // gray-200
-    // 簡單繪製圓角矩形 (用矩形代替)
-    ctx.fillRect((canvas.width - tagWidth) / 2, 300, tagWidth, 48);
-    ctx.fillStyle = '#374151'; // gray-700
-    ctx.textBaseline = 'middle';
-    ctx.fillText(tagText, canvas.width / 2, 326);
-    ctx.textBaseline = 'alphabetic'; // Reset
-
-    // 6. 名人金句 (核心內容)
-    ctx.fillStyle = '#171717'; // neutral-900
-    ctx.font = 'bold 56px serif'; // 大字體
-    let nextY = wrapText(ctx, `「${currentQuote.quote}」`, canvas.width / 2, 450, 700, 80);
-
-    // 7. 作者
-    ctx.fillStyle = '#737373'; // neutral-500
-    ctx.font = 'italic 32px serif';
-    ctx.fillText(`— ${currentQuote.author}`, canvas.width / 2, nextY + 30);
-
-    // 8. 馬年解讀區塊 (紅色框)
-    const boxTopY = nextY + 100;
-    const boxHeight = 250;
-    ctx.fillStyle = '#fef2f2'; // red-50
-    ctx.fillRect(100, boxTopY, canvas.width - 200, boxHeight);
-    ctx.strokeStyle = '#fee2e2'; // red-100
-    ctx.lineWidth = 4;
-    ctx.strokeRect(100, boxTopY, canvas.width - 200, boxHeight);
-
-    ctx.fillStyle = '#f87171'; // red-400
-    ctx.font = 'bold 28px sans-serif';
-    ctx.textAlign = 'left';
-    ctx.fillText('👉 馬年解讀：', 130, boxTopY + 50);
-
-    ctx.fillStyle = '#991b1b'; // red-800
-    ctx.font = 'bold 36px serif';
-    // 內容文字換行
-    wrapText(ctx, currentQuote.interpretation, 130, boxTopY + 100, canvas.width - 260, 50);
-
-    // 9. 底部品牌
-    ctx.fillStyle = '#d4d4d4'; // neutral-300
-    ctx.font = '24px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('Cha Cha Creative • 乙巳馬年', canvas.width / 2, canvas.height - 60);
-
-    // 下載圖片
-    const link = document.createElement('a');
-    link.download = `ChaCha_Card_${101 - remainingCount}.png`;
-    link.href = canvas.toDataURL('image/png');
-    link.click();
-  };
-
-  return (
-    <div className="min-h-screen bg-neutral-900 flex flex-col items-center justify-center p-4 font-sans overflow-hidden relative">
-      {/* 背景裝飾 */}
-      <div className="absolute inset-0 bg-gradient-to-br from-red-900 via-red-800 to-black opacity-100 z-0"></div>
-      <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-20 z-0 mix-blend-overlay"></div>
-      
-      <div className="absolute top-10 left-10 w-32 h-32 bg-yellow-500 rounded-full blur-[100px] opacity-20 animate-pulse"></div>
-      <div className="absolute bottom-10 right-10 w-40 h-40 bg-red-500 rounded-full blur-[120px] opacity-30 animate-pulse delay-700"></div>
-
-      <div className="z-10 w-full max-w-md flex flex-col items-center">
-        
-        {/* 標題區 */}
-        <header className="mb-8 text-center">
-          <h1 className="text-3xl md:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 via-yellow-400 to-yellow-200 tracking-widest drop-shadow-lg">
-            乙巳馬年
-          </h1>
-          <p className="text-red-200 text-sm mt-2 tracking-[0.2em] uppercase opacity-80">
-            Cha Cha Creative • 創意紅包
-          </p>
-        </header>
-
-        {/* 核心互動區 */}
-        <div className="relative w-full h-[500px] perspective-1000 flex justify-center items-center">
-          
-          {/* 狀態 1: 紅包未開啟 */}
-          {status === 'idle' && (
-            <div 
-              onClick={handleDraw}
-              className={`
-                cursor-pointer group relative w-64 h-80 bg-gradient-to-b from-red-600 to-red-700 
-                rounded-xl shadow-2xl transform transition-all duration-500 hover:scale-105 hover:-translate-y-2
-                flex flex-col items-center justify-center border border-red-500/30
-                ${remainingCount === 0 ? 'opacity-50 grayscale cursor-not-allowed' : 'animate-float'}
-              `}
-            >
-              {/* 紅包蓋子 */}
-              <div className="absolute top-0 w-full h-24 bg-red-500 rounded-t-xl z-20 shadow-lg origin-top transition-transform group-hover:rotate-x-12">
-                 <div className="absolute bottom-[-10px] left-1/2 transform -translate-x-1/2 w-8 h-8 bg-yellow-400 rounded-full shadow-md flex items-center justify-center border-2 border-yellow-200">
-                    <span className="text-red-800 font-bold text-xs">福</span>
-                 </div>
-              </div>
-
-              {/* 紅包本體紋路：文字馬 */}
-              <div className="text-yellow-400/10 absolute inset-0 flex items-center justify-center overflow-hidden rounded-xl">
-                 <span className="text-9xl font-serif opacity-10 select-none">馬</span>
-              </div>
-              
-              <div className="z-30 mt-12 text-center">
-                <p className="text-yellow-100 font-medium text-lg mb-2">
-                   {remainingCount === 0 ? "本輪已搶完" : "點擊抽紅包"}
-                </p>
-                <div className="px-4 py-1 bg-black/20 rounded-full backdrop-blur-sm border border-white/10">
-                  <span className="text-yellow-400 font-mono font-bold text-xl">{remainingCount}</span>
-                  <span className="text-white/60 text-xs ml-2">/ 100 份</span>
-                </div>
-              </div>
-
-              {remainingCount === 0 && (
-                 <div className="absolute inset-0 bg-black/60 z-50 rounded-xl flex items-center justify-center p-4 text-center">
-                    <div className="flex flex-col items-center">
-                        <p className="text-white font-bold text-xl mb-2">已索取完畢</p>
-                        <p className="text-white/70 text-xs">等待下一輪補貨...</p>
-                    </div>
-                 </div>
-              )}
-            </div>
-          )}
-
-          {/* 狀態 2: 開啟動畫中 */}
-          {status === 'opening' && (
-             <div className="w-64 h-80 bg-red-600 rounded-xl shadow-2xl flex items-center justify-center animate-pulse">
-                <Sparkles className="w-16 h-16 text-yellow-400 animate-spin" />
-             </div>
-          )}
-
-          {/* 狀態 3: 卡片展示 (3D 翻轉) */}
-          {status === 'revealed' && (
-            <div 
-              className={`relative w-72 h-96 transition-all duration-700 transform-style-3d cursor-pointer ${isFlipped ? 'rotate-y-180' : ''}`}
-              onClick={() => setIsFlipped(!isFlipped)}
-            >
-              {/* 正面：紅色背景 + 文字視覺 */}
-              <div className="absolute inset-0 w-full h-full backface-hidden rounded-2xl shadow-2xl overflow-hidden border-4 border-yellow-600/30">
-                <div className="absolute inset-0 bg-gradient-to-br from-red-600 to-red-900"></div>
-                <div className="absolute inset-0 opacity-30 bg-[url('https://www.transparenttextures.com/patterns/rice-paper-2.png')]"></div>
+                // 1. 背景
+                ctx.fillStyle = '#fdfbf7';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
                 
-                <div className="relative h-full flex flex-col items-center justify-center p-6 border-2 border-yellow-500/50 m-2 rounded-xl border-dashed">
-                  <div className="absolute top-4 right-4 text-yellow-500/40 text-4xl font-serif font-black italic">
-                    2026
-                  </div>
-                  
-                  {/* 文字主視覺 */}
-                  <div className="w-40 h-40 bg-red-600 rounded-full flex items-center justify-center shadow-lg mb-6 ring-4 ring-yellow-500/20 overflow-hidden">
-                     <span className="text-7xl font-serif font-bold text-neutral-900 drop-shadow-md select-none">
-                       馬
-                     </span>
-                  </div>
+                // 2. 邊框
+                ctx.strokeStyle = '#991b1b'; 
+                ctx.lineWidth = 24;
+                ctx.strokeRect(40, 40, canvas.width - 80, canvas.height - 80);
 
-                  {/* 隨機成語 */}
-                  <h2 className="text-2xl font-bold text-black bg-yellow-400 px-6 py-1 rounded-sm shadow-sm tracking-widest min-w-[160px] text-center">
-                    {currentIdiom}
-                  </h2>
-                  <p className="mt-8 text-yellow-100/60 text-xs animate-bounce">
-                    點擊翻轉查看祝福
-                  </p>
-                </div>
-              </div>
+                // 3. 標題
+                ctx.fillStyle = '#991b1b';
+                ctx.font = 'bold 32px serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('CHA CHA CARD', canvas.width / 2, 110);
+                ctx.font = 'bold 24px serif';
+                ctx.fillText(`NO. ${101 - remainingCount}`, canvas.width / 2, 150);
 
-              {/* 背面：中西創意語錄 */}
-              <div className="absolute inset-0 w-full h-full backface-hidden rotate-y-180 rounded-2xl shadow-2xl overflow-hidden bg-[#fdfbf7] text-neutral-800">
-                <div className="h-full flex flex-col p-6 items-center justify-between border-8 border-red-800">
-                  <div className="w-full flex justify-between items-center opacity-50">
-                    <span className="text-[10px] tracking-widest text-red-800">CHA CHA CARD</span>
-                    <span className="text-[10px] font-bold text-red-800">NO. {101 - remainingCount}</span>
-                  </div>
+                // 4. 成語
+                ctx.fillStyle = '#b91c1c';
+                ctx.font = 'bold 48px serif';
+                ctx.fillText(`抽中：${currentIdiom}`, canvas.width / 2, 240);
 
-                  {/* 卡片內容區 - 上方：名人金句 */}
-                  <div className="flex-1 flex flex-col items-center justify-center text-center w-full mt-2">
-                    <div className="mb-2">
-                      <span className="inline-block px-3 py-1 bg-neutral-200 text-neutral-700 text-[10px] rounded-full font-bold">
-                        #{currentQuote?.tag}
-                      </span>
-                    </div>
+                // 5. 分類
+                ctx.font = 'bold 24px sans-serif';
+                const tagText = `#${currentQuote.tag}`;
+                const tagWidth = ctx.measureText(tagText).width + 50;
+                ctx.fillStyle = '#e5e7eb';
+                ctx.fillRect((canvas.width - tagWidth) / 2, 300, tagWidth, 48);
+                ctx.fillStyle = '#374151';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(tagText, canvas.width / 2, 326);
+                ctx.textBaseline = 'alphabetic';
+
+                // 6. 金句
+                ctx.fillStyle = '#171717';
+                ctx.font = 'bold 56px serif';
+                let nextY = wrapText(ctx, `「${currentQuote.quote}」`, canvas.width / 2, 450, 700, 80);
+
+                // 7. 作者
+                ctx.fillStyle = '#737373';
+                ctx.font = 'italic 32px serif';
+                ctx.fillText(`— ${currentQuote.author}`, canvas.width / 2, nextY + 30);
+
+                // 8. 解讀區
+                const boxTopY = nextY + 100;
+                const boxHeight = 250;
+                ctx.fillStyle = '#fef2f2';
+                ctx.fillRect(100, boxTopY, canvas.width - 200, boxHeight);
+                ctx.strokeStyle = '#fee2e2';
+                ctx.lineWidth = 4;
+                ctx.strokeRect(100, boxTopY, canvas.width - 200, boxHeight);
+
+                ctx.fillStyle = '#f87171';
+                ctx.font = 'bold 28px sans-serif';
+                ctx.textAlign = 'left';
+                ctx.fillText('👉 馬年解讀：', 130, boxTopY + 50);
+
+                ctx.fillStyle = '#991b1b';
+                ctx.font = 'bold 36px serif';
+                wrapText(ctx, currentQuote.interpretation, 130, boxTopY + 100, canvas.width - 260, 50);
+
+                // 9. 底部
+                ctx.fillStyle = '#d4d4d4';
+                ctx.font = '24px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('Cha Cha Creative • 乙巳馬年', canvas.width / 2, canvas.height - 60);
+
+                const link = document.createElement('a');
+                link.download = `ChaCha_Card_${101 - remainingCount}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            };
+
+            return (
+                <div className="min-h-screen bg-neutral-900 flex flex-col items-center justify-center p-4 font-sans overflow-hidden relative">
+                {/* 背景裝飾 */}
+                <div className="absolute inset-0 bg-gradient-to-br from-red-900 via-red-800 to-black opacity-100 z-0"></div>
+                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-20 z-0 mix-blend-overlay"></div>
+                
+                <div className="absolute top-10 left-10 w-32 h-32 bg-yellow-500 rounded-full blur-[100px] opacity-20 animate-pulse"></div>
+                <div className="absolute bottom-10 right-10 w-40 h-40 bg-red-500 rounded-full blur-[120px] opacity-30 animate-pulse delay-700"></div>
+
+                <div className="z-10 w-full max-w-md flex flex-col items-center">
                     
-                    <h3 className="text-lg font-bold text-neutral-900 leading-snug font-serif mb-2 px-2">
-                      「{currentQuote?.quote}」
-                    </h3>
-                    <p className="text-xs text-neutral-500 italic mb-4">
-                      — {currentQuote?.author}
+                    {/* 標題區 */}
+                    <header className="mb-8 text-center">
+                    <h1 className="text-3xl md:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 via-yellow-400 to-yellow-200 tracking-widest drop-shadow-lg">
+                        乙巳馬年
+                    </h1>
+                    <p className="text-red-200 text-sm mt-2 tracking-[0.2em] uppercase opacity-80">
+                        Cha Cha Creative • 創意紅包
                     </p>
+                    </header>
 
-                    {/* 卡片內容區 - 下方：馬年解讀 */}
-                    <div className="w-full bg-red-50 p-3 rounded-lg border border-red-100 relative mt-1">
-                       <p className="text-[10px] text-red-400 font-bold mb-1 text-left">👉 馬年解讀：</p>
-                       <p className="text-sm text-red-800 font-medium leading-relaxed text-left">
-                         {currentQuote?.interpretation}
-                       </p>
+                    {/* 核心互動區 */}
+                    <div className="relative w-full h-[500px] perspective-1000 flex justify-center items-center">
+                    
+                    {/* 狀態 1: 紅包未開啟 */}
+                    {status === 'idle' && (
+                        <div 
+                        onClick={handleDraw}
+                        className={`
+                            cursor-pointer group relative w-64 h-80 bg-gradient-to-b from-red-600 to-red-700 
+                            rounded-xl shadow-2xl transform transition-all duration-500 hover:scale-105 hover:-translate-y-2
+                            flex flex-col items-center justify-center border border-red-500/30
+                            ${remainingCount === 0 ? 'opacity-50 grayscale cursor-not-allowed' : 'animate-float'}
+                        `}
+                        >
+                        {/* 紅包蓋子 */}
+                        <div className="absolute top-0 w-full h-24 bg-red-500 rounded-t-xl z-20 shadow-lg origin-top transition-transform group-hover:rotate-x-12">
+                            <div className="absolute bottom-[-10px] left-1/2 transform -translate-x-1/2 w-8 h-8 bg-yellow-400 rounded-full shadow-md flex items-center justify-center border-2 border-yellow-200">
+                                <span className="text-red-800 font-bold text-xs">福</span>
+                            </div>
+                        </div>
+
+                        {/* 紅包本體紋路：文字馬 */}
+                        <div className="text-yellow-400/10 absolute inset-0 flex items-center justify-center overflow-hidden rounded-xl">
+                            <span className="text-9xl font-serif opacity-10 select-none">馬</span>
+                        </div>
+                        
+                        <div className="z-30 mt-12 text-center">
+                            <p className="text-yellow-100 font-medium text-lg mb-2">
+                            {remainingCount === 0 ? "本輪已搶完" : "點擊抽紅包"}
+                            </p>
+                            <div className="px-4 py-1 bg-black/20 rounded-full backdrop-blur-sm border border-white/10">
+                            <span className="text-yellow-400 font-mono font-bold text-xl">{remainingCount}</span>
+                            <span className="text-white/60 text-xs ml-2">/ 100 份</span>
+                            </div>
+                        </div>
+
+                        {remainingCount === 0 && (
+                            <div className="absolute inset-0 bg-black/60 z-50 rounded-xl flex items-center justify-center p-4 text-center">
+                                <div className="flex flex-col items-center">
+                                    <p className="text-white font-bold text-xl mb-2">已索取完畢</p>
+                                    <p className="text-white/70 text-xs">等待下一輪補貨...</p>
+                                </div>
+                            </div>
+                        )}
+                        </div>
+                    )}
+
+                    {/* 狀態 2: 開啟動畫中 */}
+                    {status === 'opening' && (
+                        <div className="w-64 h-80 bg-red-600 rounded-xl shadow-2xl flex items-center justify-center animate-pulse">
+                            <Sparkles className="w-16 h-16 text-yellow-400 animate-spin" />
+                        </div>
+                    )}
+
+                    {/* 狀態 3: 卡片展示 (3D 翻轉) */}
+                    {status === 'revealed' && (
+                        <div 
+                        className={`relative w-72 h-96 transition-all duration-700 transform-style-3d cursor-pointer ${isFlipped ? 'rotate-y-180' : ''}`}
+                        onClick={() => setIsFlipped(!isFlipped)}
+                        >
+                        {/* 正面：紅色背景 + 文字視覺 */}
+                        <div className="absolute inset-0 w-full h-full backface-hidden rounded-2xl shadow-2xl overflow-hidden border-4 border-yellow-600/30">
+                            <div className="absolute inset-0 bg-gradient-to-br from-red-600 to-red-900"></div>
+                            <div className="absolute inset-0 opacity-30 bg-[url('https://www.transparenttextures.com/patterns/rice-paper-2.png')]"></div>
+                            
+                            <div className="relative h-full flex flex-col items-center justify-center p-6 border-2 border-yellow-500/50 m-2 rounded-xl border-dashed">
+                            <div className="absolute top-4 right-4 text-yellow-500/40 text-4xl font-serif font-black italic">
+                                2026
+                            </div>
+                            
+                            {/* 文字主視覺 */}
+                            <div className="w-40 h-40 bg-red-600 rounded-full flex items-center justify-center shadow-lg mb-6 ring-4 ring-yellow-500/20 overflow-hidden">
+                                <span className="text-7xl font-serif font-bold text-neutral-900 drop-shadow-md select-none">
+                                馬
+                                </span>
+                            </div>
+
+                            {/* 隨機成語 */}
+                            <h2 className="text-2xl font-bold text-black bg-yellow-400 px-6 py-1 rounded-sm shadow-sm tracking-widest min-w-[160px] text-center">
+                                {currentIdiom}
+                            </h2>
+                            <p className="mt-8 text-yellow-100/60 text-xs animate-bounce">
+                                點擊翻轉查看祝福
+                            </p>
+                            </div>
+                        </div>
+
+                        {/* 背面：中西創意語錄 */}
+                        <div className="absolute inset-0 w-full h-full backface-hidden rotate-y-180 rounded-2xl shadow-2xl overflow-hidden bg-[#fdfbf7] text-neutral-800">
+                            <div className="h-full flex flex-col p-6 items-center justify-between border-8 border-red-800">
+                            <div className="w-full flex justify-between items-center opacity-50">
+                                <span className="text-[10px] tracking-widest text-red-800">CHA CHA CARD</span>
+                                <span className="text-[10px] font-bold text-red-800">NO. {101 - remainingCount}</span>
+                            </div>
+
+                            {/* 卡片內容區 - 上方：名人金句 */}
+                            <div className="flex-1 flex flex-col items-center justify-center text-center w-full mt-2">
+                                <div className="mb-2">
+                                <span className="inline-block px-3 py-1 bg-neutral-200 text-neutral-700 text-[10px] rounded-full font-bold">
+                                    #{currentQuote?.tag}
+                                </span>
+                                </div>
+                                
+                                <h3 className="text-lg font-bold text-neutral-900 leading-snug font-serif mb-2 px-2">
+                                「{currentQuote?.quote}」
+                                </h3>
+                                <p className="text-xs text-neutral-500 italic mb-4">
+                                — {currentQuote?.author}
+                                </p>
+
+                                {/* 卡片內容區 - 下方：馬年解讀 */}
+                                <div className="w-full bg-red-50 p-3 rounded-lg border border-red-100 relative mt-1">
+                                <p className="text-[10px] text-red-400 font-bold mb-1 text-left">👉 馬年解讀：</p>
+                                <p className="text-sm text-red-800 font-medium leading-relaxed text-left">
+                                    {currentQuote?.interpretation}
+                                </p>
+                                </div>
+                            </div>
+
+                            <div className="w-full pt-3 border-t border-red-100 flex justify-center gap-4 mt-2">
+                                <button 
+                                    onClick={handleShare}
+                                    className="text-neutral-400 hover:text-red-600 transition-colors flex flex-col items-center gap-1 min-w-[60px]"
+                                >
+                                    {shareIcon}
+                                    <span className="text-[10px]">{shareText}</span>
+                                </button>
+
+                                <div className="w-px h-8 bg-neutral-200"></div>
+
+                                <button 
+                                    onClick={handleDownload}
+                                    className="text-neutral-400 hover:text-red-600 transition-colors flex flex-col items-center gap-1 min-w-[60px]"
+                                >
+                                    <Download size={18} />
+                                    <span className="text-[10px]">下載收藏</span>
+                                </button>
+                            </div>
+                            </div>
+                        </div>
+                        </div>
+                    )}
                     </div>
-                  </div>
 
-                  <div className="w-full pt-3 border-t border-red-100 flex justify-center gap-4 mt-2">
-                     <button 
-                        onClick={handleShare}
-                        className="text-neutral-400 hover:text-red-600 transition-colors flex flex-col items-center gap-1 min-w-[60px]"
-                     >
-                        {shareIcon}
-                        <span className="text-[10px]">{shareText}</span>
-                     </button>
+                    {/* 底部品牌宣傳 & 補貨按鈕 */}
+                    <footer className="mt-12 text-center space-y-4">
+                    {remainingCount > 0 ? (
+                        <div className="flex flex-col items-center">
+                        <p className="text-yellow-200/80 text-sm font-medium tracking-wider mb-2">
+                            Cha Cha Creative 祝大家新年快樂！
+                        </p>
+                        {status === 'revealed' && (
+                            <button 
+                                onClick={handleReset}
+                                className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-full text-white text-xs transition-all border border-white/20"
+                            >
+                                <RefreshCw size={12} /> 再抽一次
+                            </button>
+                        )}
+                        </div>
+                    ) : (
+                        <div className="flex flex-col items-center gap-2">
+                            <p className="text-red-400 text-sm font-bold animate-pulse">
+                                🧧 這輪 100 份紅包已搶完！
+                            </p>
+                            <button 
+                            onClick={handleReset}
+                            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-yellow-500 to-yellow-600 text-black font-bold text-sm rounded-full shadow-lg hover:scale-105 transition-transform"
+                            >
+                            <Zap size={16} /> 開啟新的一輪紅包 (補貨)
+                            </button>
+                        </div>
+                    )}
+                    </footer>
 
-                     <div className="w-px h-8 bg-neutral-200"></div>
-
-                     <button 
-                        onClick={handleDownload}
-                        className="text-neutral-400 hover:text-red-600 transition-colors flex flex-col items-center gap-1 min-w-[60px]"
-                     >
-                        <Download size={18} />
-                        <span className="text-[10px]">下載收藏</span>
-                     </button>
-                  </div>
                 </div>
-              </div>
-            </div>
-          )}
-        </div>
 
-        {/* 底部品牌宣傳 & 補貨按鈕 */}
-        <footer className="mt-12 text-center space-y-4">
-           {remainingCount > 0 ? (
-             <div className="flex flex-col items-center">
-               <p className="text-yellow-200/80 text-sm font-medium tracking-wider mb-2">
-                 Cha Cha Creative 祝大家新年快樂！
-               </p>
-               {status === 'revealed' && (
-                 <button 
-                    onClick={handleReset}
-                    className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-full text-white text-xs transition-all border border-white/20"
-                 >
-                    <RefreshCw size={12} /> 再抽一次
-                 </button>
-               )}
-             </div>
-           ) : (
-             <div className="flex flex-col items-center gap-2">
-                <p className="text-red-400 text-sm font-bold animate-pulse">
-                    🧧 這輪 100 份紅包已搶完！
-                </p>
-                <button 
-                  onClick={handleReset}
-                  className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-yellow-500 to-yellow-600 text-black font-bold text-sm rounded-full shadow-lg hover:scale-105 transition-transform"
-                >
-                  <Zap size={16} /> 開啟新的一輪紅包 (補貨)
-                </button>
-             </div>
-           )}
-        </footer>
+                <style>{`
+                    .perspective-1000 {
+                    perspective: 1000px;
+                    }
+                    .transform-style-3d {
+                    transform-style: preserve-3d;
+                    }
+                    .backface-hidden {
+                    backface-visibility: hidden;
+                    }
+                    .rotate-y-180 {
+                    transform: rotateY(180deg);
+                    }
+                    @keyframes float {
+                    0%, 100% { transform: translateY(0); }
+                    50% { transform: translateY(-10px); }
+                    }
+                    .animate-float {
+                    animation: float 3s ease-in-out infinite;
+                    }
+                `}</style>
+                </div>
+            );
+        }
 
-      </div>
-
-      <style>{`
-        .perspective-1000 {
-          perspective: 1000px;
-        }
-        .transform-style-3d {
-          transform-style: preserve-3d;
-        }
-        .backface-hidden {
-          backface-visibility: hidden;
-        }
-        .rotate-y-180 {
-          transform: rotateY(180deg);
-        }
-        @keyframes float {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-10px); }
-        }
-        .animate-float {
-          animation: float 3s ease-in-out infinite;
-        }
-      `}</style>
-    </div>
-  );
-}
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
