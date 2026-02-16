@@ -54,6 +54,13 @@
         .animate-float {
             animation: float 3s ease-in-out infinite;
         }
+        @keyframes fade-in-up {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-up {
+            animation: fade-in-up 0.8s ease-out forwards;
+        }
         /* 解決 iOS 點擊閃爍問題 */
         * {
             -webkit-tap-highlight-color: transparent;
@@ -270,13 +277,10 @@
             const [status, setStatus] = useState('idle'); // idle, opening, revealed
             const [currentQuote, setCurrentQuote] = useState(null);
             const [currentIdiom, setCurrentIdiom] = useState("馬到成功");
-            const [isFlipped, setIsFlipped] = useState(false);
             const [shareText, setShareText] = useState("分享連結"); 
             const [shareIcon, setShareIcon] = useState(<Share2 size={18} />);
             const [luckyNumber, setLuckyNumber] = useState(null); // 隨機幸運編號
             
-            // 純隨機版：移除 drawnHistory 相關邏輯
-
             const handleDraw = () => {
                 if (status !== 'idle') return;
 
@@ -310,7 +314,6 @@
             };
 
             const handleReset = () => {
-                setIsFlipped(false);
                 setStatus('idle');
                 setShareText("分享連結");
                 setShareIcon(<Share2 size={18} />);
@@ -355,8 +358,7 @@
                     setShareText("已複製！");
                     setShareIcon(<Check size={18} className="text-green-600" />);
                     
-                    // 手機端通常有原生 Toast，這裡用 alert 確保回饋
-                    // alert("連結與祝福語已複製！\n\n請前往 Line 貼上給朋友，\n邀請他們一起來抽創意紅包！");
+                    alert("連結與祝福語已複製！\n\n請前往 Line 貼上給朋友，\n邀請他們一起來抽創意紅包！");
 
                     setTimeout(() => {
                         setShareText("分享連結");
@@ -384,73 +386,103 @@
                 canvas.height = 1200;
                 const ctx = canvas.getContext('2d');
 
-                // 1. 背景
+                // 1. 上半部背景 (紅色)
+                const splitY = 400; // 上下分隔線
+                const gradient = ctx.createLinearGradient(0, 0, canvas.width, splitY);
+                gradient.addColorStop(0, '#dc2626'); // red-600
+                gradient.addColorStop(1, '#7f1d1d'); // red-900
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, canvas.width, splitY);
+
+                // 2. 下半部背景 (米色)
                 ctx.fillStyle = '#fdfbf7';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillRect(0, splitY, canvas.width, canvas.height - splitY);
                 
-                // 2. 邊框
+                // 3. 邊框 (整體外框)
                 ctx.strokeStyle = '#991b1b'; 
-                ctx.lineWidth = 24;
-                ctx.strokeRect(40, 40, canvas.width - 80, canvas.height - 80);
+                ctx.lineWidth = 16;
+                ctx.strokeRect(0, 0, canvas.width, canvas.height); // Outer border
 
-                // 3. 標題
-                ctx.fillStyle = '#991b1b';
-                ctx.font = 'bold 32px serif';
+                // 4. 上半部內容
+                // 視覺圓圈
+                ctx.fillStyle = 'rgba(153, 27, 27, 0.5)'; // red-800 with opacity
+                ctx.beginPath();
+                ctx.arc(canvas.width / 2, 180, 80, 0, 2 * Math.PI);
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(248, 113, 113, 0.3)'; // red-400 border
+                ctx.lineWidth = 4;
+                ctx.stroke();
+
+                // 馬字
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 100px serif';
                 ctx.textAlign = 'center';
-                ctx.fillText('CHA CHA CARD', canvas.width / 2, 110);
-                ctx.font = 'bold 24px serif';
-                // 顯示幸運編號
-                ctx.fillText(`NO. ${luckyNumber || '8888'}`, canvas.width / 2, 150);
+                ctx.textBaseline = 'middle';
+                ctx.fillText('馬', canvas.width / 2, 185);
 
-                // 4. 成語
-                ctx.fillStyle = '#b91c1c';
-                ctx.font = 'bold 48px serif';
-                ctx.fillText(`抽中：${currentIdiom}`, canvas.width / 2, 240);
+                // 成語
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 64px serif';
+                ctx.fillText(currentIdiom, canvas.width / 2, 330);
 
-                // 5. 分類
+                // 5. 下半部內容
+                ctx.textBaseline = 'alphabetic'; // Reset baseline
+
+                // Header info
+                ctx.fillStyle = '#991b1b';
+                ctx.font = 'bold 24px sans-serif';
+                ctx.fillText('CHA CHA CARD', canvas.width / 2 - 150, splitY + 60);
+                ctx.fillText(`NO. ${luckyNumber || '8888'}`, canvas.width / 2 + 150, splitY + 60);
+
+                // Tag
                 ctx.font = 'bold 24px sans-serif';
                 const tagText = `#${currentQuote.tag}`;
                 const tagWidth = ctx.measureText(tagText).width + 50;
                 ctx.fillStyle = '#e5e7eb';
-                ctx.fillRect((canvas.width - tagWidth) / 2, 300, tagWidth, 48);
+                ctx.fillRect((canvas.width - tagWidth) / 2, splitY + 100, tagWidth, 48);
                 ctx.fillStyle = '#374151';
                 ctx.textBaseline = 'middle';
-                ctx.fillText(tagText, canvas.width / 2, 326);
+                ctx.fillText(tagText, canvas.width / 2, splitY + 126);
                 ctx.textBaseline = 'alphabetic';
 
-                // 6. 金句
+                // 金句
                 ctx.fillStyle = '#171717';
-                ctx.font = 'bold 56px serif';
-                let nextY = wrapText(ctx, `「${currentQuote.quote}」`, canvas.width / 2, 450, 700, 80);
+                ctx.font = 'bold 52px serif';
+                // Calculate position based on text length to center vertically in available space
+                let nextY = wrapText(ctx, `「${currentQuote.quote}」`, canvas.width / 2, splitY + 250, 750, 70);
 
-                // 7. 作者
+                // 作者
                 ctx.fillStyle = '#737373';
                 ctx.font = 'italic 32px serif';
-                ctx.fillText(`— ${currentQuote.author}`, canvas.width / 2, nextY + 30);
+                ctx.fillText(`— ${currentQuote.author}`, canvas.width / 2, nextY + 40);
 
-                // 8. 解讀區
+                // 解讀區
                 const boxTopY = nextY + 100;
                 const boxHeight = 250;
+                // Draw box background
                 ctx.fillStyle = '#fef2f2';
                 ctx.fillRect(100, boxTopY, canvas.width - 200, boxHeight);
+                // Draw box border
                 ctx.strokeStyle = '#fee2e2';
                 ctx.lineWidth = 4;
                 ctx.strokeRect(100, boxTopY, canvas.width - 200, boxHeight);
 
+                // Label
                 ctx.fillStyle = '#f87171';
                 ctx.font = 'bold 28px sans-serif';
                 ctx.textAlign = 'left';
                 ctx.fillText('👉 馬年解讀：', 130, boxTopY + 50);
 
+                // Content
                 ctx.fillStyle = '#991b1b';
                 ctx.font = 'bold 36px serif';
                 wrapText(ctx, currentQuote.interpretation, 130, boxTopY + 100, canvas.width - 260, 50);
 
-                // 9. 底部
+                // 底部 Branding
                 ctx.fillStyle = '#d4d4d4';
                 ctx.font = '24px sans-serif';
                 ctx.textAlign = 'center';
-                ctx.fillText('Cha Cha Creative • 乙巳馬年', canvas.width / 2, canvas.height - 60);
+                ctx.fillText('Cha Cha Creative • 乙巳馬年', canvas.width / 2, canvas.height - 40);
 
                 const link = document.createElement('a');
                 link.download = `ChaCha_Card_${luckyNumber}.png`;
@@ -480,7 +512,7 @@
                     </header>
 
                     {/* 核心互動區 */}
-                    <div className="relative w-full h-[500px] perspective-1000 flex justify-center items-center">
+                    <div className="relative w-full min-h-[500px] flex justify-center items-center">
                     
                     {/* 狀態 1: 紅包未開啟 */}
                     {status === 'idle' && (
@@ -519,108 +551,89 @@
                         </div>
                     )}
 
-                    {/* 狀態 3: 卡片展示 (3D 翻轉) */}
+                    {/* 狀態 3: 已開獎 (單一合併卡片) */}
                     {status === 'revealed' && (
-                        <div 
-                        className={`relative w-72 h-96 transition-all duration-700 transform-style-3d cursor-pointer ${isFlipped ? 'rotate-y-180' : ''}`}
-                        onClick={() => setIsFlipped(!isFlipped)}
-                        >
-                        {/* 正面：紅色背景 + 文字視覺 */}
-                        <div className="absolute inset-0 w-full h-full backface-hidden rounded-2xl shadow-2xl overflow-hidden border-4 border-yellow-600/30">
-                            <div className="absolute inset-0 bg-gradient-to-br from-red-600 to-red-900"></div>
-                            <div className="absolute inset-0 opacity-30 bg-[url('https://www.transparenttextures.com/patterns/rice-paper-2.png')]"></div>
+                        <div className="w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden bg-[#fdfbf7] animate-fade-in-up border-4 border-red-800">
                             
-                            <div className="relative h-full flex flex-col items-center justify-center p-6 border-2 border-yellow-500/50 m-2 rounded-xl border-dashed">
-                            <div className="absolute top-4 right-4 text-yellow-500/40 text-4xl font-serif font-black italic">
-                                2026
-                            </div>
-                            
-                            {/* 文字主視覺 */}
-                            <div className="w-40 h-40 bg-red-600 rounded-full flex items-center justify-center shadow-lg mb-6 ring-4 ring-yellow-500/20 overflow-hidden">
-                                <span className="text-7xl font-serif font-bold text-neutral-900 drop-shadow-md select-none">
-                                馬
-                                </span>
+                            {/* 上半部：紅色視覺區 */}
+                            <div className="relative bg-gradient-to-br from-red-600 to-red-900 p-6 flex flex-col items-center justify-center">
+                                <div className="absolute inset-0 opacity-30 bg-[url('https://www.transparenttextures.com/patterns/rice-paper-2.png')]"></div>
+                                
+                                {/* 視覺圓圈 */}
+                                <div className="w-20 h-20 bg-red-800/50 rounded-full flex items-center justify-center shadow-inner mb-3 backdrop-blur-sm border border-red-400/30">
+                                    <span className="text-4xl font-serif font-bold text-white drop-shadow-md select-none">
+                                    馬
+                                    </span>
+                                </div>
+
+                                {/* 成語 */}
+                                <h2 className="text-2xl font-bold text-white tracking-widest text-center drop-shadow-md">
+                                    {currentIdiom}
+                                </h2>
                             </div>
 
-                            {/* 隨機成語 */}
-                            <h2 className="text-2xl font-bold text-black bg-yellow-400 px-6 py-1 rounded-sm shadow-sm tracking-widest min-w-[160px] text-center">
-                                {currentIdiom}
-                            </h2>
-                            <p className="mt-8 text-yellow-100/60 text-xs animate-bounce">
-                                點擊翻轉查看祝福
-                            </p>
-                            </div>
-                        </div>
+                            {/* 下半部：米色內容區 */}
+                            <div className="p-6 flex flex-col items-center">
+                                <div className="w-full flex justify-between items-center opacity-50 mb-4 text-xs">
+                                    <span className="tracking-widest text-red-800">CHA CHA CARD</span>
+                                    <span className="font-bold text-red-800">NO. {luckyNumber}</span>
+                                </div>
 
-                        {/* 背面：中西創意語錄 */}
-                        <div className="absolute inset-0 w-full h-full backface-hidden rotate-y-180 rounded-2xl shadow-2xl overflow-hidden bg-[#fdfbf7] text-neutral-800">
-                            <div className="h-full flex flex-col p-6 items-center justify-between border-8 border-red-800">
-                            <div className="w-full flex justify-between items-center opacity-50">
-                                <span className="text-[10px] tracking-widest text-red-800">CHA CHA CARD</span>
-                                <span className="text-[10px] font-bold text-red-800">NO. {luckyNumber}</span>
-                            </div>
-
-                            {/* 卡片內容區 - 上方：名人金句 */}
-                            <div className="flex-1 flex flex-col items-center justify-center text-center w-full mt-2">
-                                <div className="mb-2">
-                                <span className="inline-block px-3 py-1 bg-neutral-200 text-neutral-700 text-[10px] rounded-full font-bold">
-                                    #{currentQuote?.tag}
-                                </span>
+                                <div className="mb-3">
+                                    <span className="inline-block px-3 py-1 bg-neutral-200 text-neutral-700 text-[10px] rounded-full font-bold">
+                                        #{currentQuote?.tag}
+                                    </span>
                                 </div>
                                 
-                                <h3 className="text-lg font-bold text-neutral-900 leading-snug font-serif mb-2 px-2">
+                                <h3 className="text-lg font-bold text-neutral-900 leading-snug font-serif mb-3 px-2 text-center">
                                 「{currentQuote?.quote}」
                                 </h3>
-                                <p className="text-xs text-neutral-500 italic mb-4">
+                                <p className="text-xs text-neutral-500 italic mb-5 text-center">
                                 — {currentQuote?.author}
                                 </p>
 
-                                {/* 卡片內容區 - 下方：馬年解讀 */}
-                                <div className="w-full bg-red-50 p-3 rounded-lg border border-red-100 relative mt-1">
-                                <p className="text-[10px] text-red-400 font-bold mb-1 text-left">👉 馬年解讀：</p>
-                                <p className="text-sm text-red-800 font-medium leading-relaxed text-left">
-                                    {currentQuote?.interpretation}
-                                </p>
+                                <div className="w-full bg-red-50 p-4 rounded-lg border border-red-100 relative text-left mb-4">
+                                    <p className="text-[10px] text-red-400 font-bold mb-1">👉 馬年解讀：</p>
+                                    <p className="text-sm text-red-800 font-medium leading-relaxed">
+                                        {currentQuote?.interpretation}
+                                    </p>
+                                </div>
+
+                                <div className="w-full pt-4 border-t border-red-100 flex justify-center gap-4">
+                                    <button 
+                                        onClick={handleShareClick}
+                                        className="text-neutral-500 hover:text-red-600 transition-colors flex flex-col items-center gap-1 min-w-[60px]"
+                                    >
+                                        {shareIcon}
+                                        <span className="text-[10px] font-medium">{shareText}</span>
+                                    </button>
+
+                                    <div className="w-px h-10 bg-neutral-200"></div>
+
+                                    <button 
+                                        onClick={handleDownload}
+                                        className="text-neutral-500 hover:text-red-600 transition-colors flex flex-col items-center gap-1 min-w-[60px]"
+                                    >
+                                        <Download size={18} />
+                                        <span className="text-[10px] font-medium">下載收藏</span>
+                                    </button>
                                 </div>
                             </div>
-
-                            <div className="w-full pt-3 border-t border-red-100 flex justify-center gap-4 mt-2">
-                                <button 
-                                    onClick={handleShareClick}
-                                    className="text-neutral-400 hover:text-red-600 transition-colors flex flex-col items-center gap-1 min-w-[60px]"
-                                >
-                                    {shareIcon}
-                                    <span className="text-[10px]">{shareText}</span>
-                                </button>
-
-                                <div className="w-px h-8 bg-neutral-200"></div>
-
-                                <button 
-                                    onClick={handleDownload}
-                                    className="text-neutral-400 hover:text-red-600 transition-colors flex flex-col items-center gap-1 min-w-[60px]"
-                                >
-                                    <Download size={18} />
-                                    <span className="text-[10px]">下載收藏</span>
-                                </button>
-                            </div>
-                            </div>
-                        </div>
                         </div>
                     )}
                     </div>
 
                     {/* 底部品牌宣傳 & 補貨按鈕 */}
-                    <footer className="mt-6 text-center space-y-4">
-                        <div className="flex flex-col items-center w-full max-w-xs mx-auto">
+                    <footer className="mt-6 mb-8 text-center space-y-4 px-4 w-full flex flex-col items-center">
                         {status === 'revealed' && (
-                             <div className="mb-4 w-full bg-white/10 p-4 rounded-xl border border-white/20 backdrop-blur-md shadow-lg animate-fade-in">
+                             <div className="w-full max-w-sm bg-white/10 p-4 rounded-xl border border-white/20 backdrop-blur-md shadow-lg animate-fade-in-up">
                                 <h3 className="text-yellow-300 text-lg font-bold mb-3 tracking-wider">
                                     👇 傳遞好運 2 步驟 👇
                                 </h3>
                                 <div className="text-left text-white/95 text-base space-y-3 px-1">
                                     <p className="flex items-center gap-3">
                                         <span className="bg-yellow-500 text-black font-bold rounded-full w-6 h-6 flex items-center justify-center text-sm shrink-0 shadow-sm">1</span>
-                                        <span className="drop-shadow-sm">點擊 <b>分享</b> 或 <b>下載</b></span>
+                                        <span className="drop-shadow-sm">點擊 <b>分享連結</b> 或 <b>下載收藏</b></span>
                                     </p>
                                     <p className="flex items-center gap-3">
                                         <span className="bg-yellow-500 text-black font-bold rounded-full w-6 h-6 flex items-center justify-center text-sm shrink-0 shadow-sm">2</span>
@@ -629,17 +642,19 @@
                                 </div>
                             </div>
                         )}
-                        <p className="text-yellow-200/80 text-sm font-medium tracking-wider mb-2">
-                            Cha Cha Creative 祝大家新年快樂！
-                        </p>
-                        {status === 'revealed' && (
-                            <button 
-                                onClick={handleReset}
-                                className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-full text-white text-xs transition-all border border-white/20"
-                            >
-                                <RefreshCw size={12} /> 再抽一次
-                            </button>
-                        )}
+                        
+                        <div className="flex flex-col items-center gap-3">
+                            <p className="text-yellow-200/80 text-sm font-medium tracking-wider">
+                                Cha Cha Creative 祝大家新年快樂！
+                            </p>
+                            {status === 'revealed' && (
+                                <button 
+                                    onClick={handleReset}
+                                    className="flex items-center gap-2 px-6 py-2 bg-white/10 hover:bg-white/20 rounded-full text-white text-sm transition-all border border-white/20 shadow-md backdrop-blur-sm"
+                                >
+                                    <RefreshCw size={14} /> 再抽一次
+                                </button>
+                            )}
                         </div>
                     </footer>
 
